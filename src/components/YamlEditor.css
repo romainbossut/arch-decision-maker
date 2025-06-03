@@ -1,0 +1,107 @@
+.yaml-editor {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  background: #f9fafb;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.editor-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.editor-controls {
+  display: flex;
+  gap: 8px;
+}
+
+.toggle-button,
+.parse-button {
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #ffffff;
+  color: #374151;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.parse-button {
+  background: #3b82f6;
+  color: #ffffff;
+  border-color: #3b82f6;
+}
+
+.toggle-button:hover {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.parse-button:hover {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.editor-content {
+  transition: all 0.3s ease-in-out;
+}
+
+.editor-content:not(.expanded) {
+  height: 120px;
+}
+
+.editor-content.expanded {
+  height: 400px;
+}
+
+.editor-content textarea {
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  border: none;
+  resize: none;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  background: #fafafa;
+  color: #374151;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.error-list {
+  padding: 16px;
+  background: #fef2f2;
+  border-top: 1px solid #fecaca;
+}
+
+.error-list h4 {
+  margin: 0 0 8px 0;
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.error-list ul {
+  margin: 0;
+  padding-left: 16px;
+  color: #dc2626;
+  font-size: 14px;
+}
+
+.error-list li {
+  margin-bottom: 4px;
+} 

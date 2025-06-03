@@ -1,0 +1,18 @@
+# Cursor Rules for Arch Decision Maker
+
+## Testing Requirements (MANDATORY)
+
+### Core Testing Principle
+**EVERY feature implementation MUST be followed by running tests. No exceptions.**
+
+### Test-First Development Rules
+1. **Before implementing any new feature:**
+   - Write tests first (TDD approach preferred)
+   - If tests don't exist for the area you're modifying, create them
+   - Ensure existing tests pass before making changes
+
+2. **After implementing any feature:**
+   - Run `npm test` to execute all tests
+   - Ensure all tests pass before considering the feature complete
+   - If tests fail, fix the implementation, don't modify tests to pass
+   - Add new tests to cover the new functionality
