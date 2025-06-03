@@ -1,17 +1,16 @@
-import React, { useCallback, useMemo, useEffect } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import ReactFlow, {
-  addEdge,
-  useNodesState,
-  useEdgesState,
   Controls,
   Background,
   BackgroundVariant,
+  Position,
 } from 'reactflow';
-import type { Node, Edge, Connection, NodeTypes } from 'reactflow';
+import type { Node, Edge } from 'reactflow';
 import 'reactflow/dist/style.css';
-import type { ArchitectureDecisionTree } from '../types/architecture';
 import DecisionNode from './DecisionNode';
 import ExternalDependencyNode from './ExternalDependencyNode';
+import type { ArchitectureDecisionTree } from '../types/architecture';
+import './DecisionTreeVisualization.css';
 
 interface DecisionTreeVisualizationProps {
   tree: ArchitectureDecisionTree;
@@ -19,56 +18,82 @@ interface DecisionTreeVisualizationProps {
   onDecisionSelect: (decisionId: string) => void;
 }
 
-const nodeTypes: NodeTypes = {
+const nodeTypes = {
   decision: DecisionNode,
   externalDependency: ExternalDependencyNode,
 };
 
-export default function DecisionTreeVisualization({
-  tree,
-  selectedDecisionId,
-  onDecisionSelect,
+export default function DecisionTreeVisualization({ 
+  tree, 
+  selectedDecisionId, 
+  onDecisionSelect 
 }: DecisionTreeVisualizationProps) {
-  // Convert decision tree to ReactFlow nodes and edges
-  const { nodes: calculatedNodes, edges: calculatedEdges } = useMemo(() => {
-    const nodes: Node[] = [];
-    const edges: Edge[] = [];
+  const [showExternalDependencies, setShowExternalDependencies] = useState(true);
 
-    // Calculate positions using a simple hierarchical layout
-    const levels: Record<number, string[]> = {};
-    const visited = new Set<string>();
-    
-    function calculateLevel(decisionId: string, level: number = 0): number {
-      if (visited.has(decisionId)) return level;
-      visited.add(decisionId);
-      
-      if (!levels[level]) levels[level] = [];
-      levels[level].push(decisionId);
-      
-      const decision = tree.decisions[decisionId];
-      let maxChildLevel = level;
-      
-      if (decision.children) {
-        decision.children.forEach(childId => {
-          const childLevel = calculateLevel(childId, level + 1);
-          maxChildLevel = Math.max(maxChildLevel, childLevel);
-        });
+  // Enhanced layout algorithm for better positioning
+  const { nodes, edges } = useMemo(() => {
+    const decisions = Object.values(tree.decisions);
+    const calculatedNodes: Node[] = [];
+    const calculatedEdges: Edge[] = [];
+
+    // Configuration for layout
+    const HORIZONTAL_SPACING = 350;
+    const VERTICAL_SPACING = 200;
+    const EXTERNAL_DEPENDENCY_X_OFFSET = 200;
+    const EXTERNAL_DEPENDENCY_Y_SPACING = 120;
+
+    // Calculate levels for hierarchical layout
+    const levels: Record<string, number> = {};
+    const processed = new Set<string>();
+
+    // Helper function to calculate the depth/level of each decision
+    function calculateLevel(decisionId: string, currentLevel = 0): number {
+      if (processed.has(decisionId)) {
+        return levels[decisionId] || 0;
       }
-      
-      return maxChildLevel;
+
+      const decision = tree.decisions[decisionId];
+      if (!decision) return currentLevel;
+
+      let maxParentLevel = -1;
+      if (decision.dependencies && decision.dependencies.length > 0) {
+        for (const depId of decision.dependencies) {
+          const parentLevel = calculateLevel(depId, currentLevel);
+          maxParentLevel = Math.max(maxParentLevel, parentLevel);
+        }
+      }
+
+      const level = maxParentLevel + 1;
+      levels[decisionId] = level;
+      processed.add(decisionId);
+      return level;
     }
 
-    // Start from root decisions
-    tree.rootDecisions.forEach(rootId => calculateLevel(rootId));
+    // Calculate levels for all decisions
+    decisions.forEach(decision => calculateLevel(decision.id));
 
-    // Create decision nodes with calculated positions
-    Object.entries(levels).forEach(([level, decisionIds]) => {
+    // Group decisions by level
+    const levelGroups: Record<number, string[]> = {};
+    Object.entries(levels).forEach(([id, level]) => {
+      if (!levelGroups[level]) levelGroups[level] = [];
+      levelGroups[level].push(id);
+    });
+
+    // Position decision nodes
+    Object.entries(levelGroups).forEach(([levelStr, decisionIds]) => {
+      const level = parseInt(levelStr);
+      const x = level * HORIZONTAL_SPACING;
+      
       decisionIds.forEach((decisionId, index) => {
         const decision = tree.decisions[decisionId];
-        const x = (index - decisionIds.length / 2) * 300 + 400; // Increased spacing for external deps
-        const y = parseInt(level) * 200 + 100; // Increased vertical spacing
+        if (!decision) return;
 
-        nodes.push({
+        // Center multiple nodes at the same level
+        const totalInLevel = decisionIds.length;
+        const yOffset = (index - (totalInLevel - 1) / 2) * VERTICAL_SPACING;
+        const y = yOffset;
+
+        calculatedNodes.push({
           id: decisionId,
           type: 'decision',
           position: { x, y },
@@ -77,117 +102,134 @@ export default function DecisionTreeVisualization({
             isSelected: selectedDecisionId === decisionId,
             onSelect: () => onDecisionSelect(decisionId),
           },
+          targetPosition: Position.Left,
+          sourcePosition: Position.Right,
         });
+      });
+    });
 
-        // Add external dependency nodes for this decision
+    // Position external dependency nodes (only if visible)
+    if (showExternalDependencies) {
+      decisions.forEach(decision => {
         if (decision.externalDependencies && decision.externalDependencies.length > 0) {
-          decision.externalDependencies.forEach((extDep, extIndex) => {
-            const extDepNodeId = `${decisionId}-ext-${extDep.id}`;
-            const extDepX = x + 200 + (extIndex * 140); // Position to the right of decision
-            const extDepY = y - 20; // Slightly above decision level
+          const parentNode = calculatedNodes.find(node => node.id === decision.id);
+          if (!parentNode) return;
 
-            // Mark as overdue if past expected resolution date
-            const extDepWithOverdue = {
-              ...extDep,
-              isOverdue: extDep.expectedResolutionDate 
-                ? new Date(extDep.expectedResolutionDate) < new Date()
-                : false
-            };
+          decision.externalDependencies.forEach((extDep, index) => {
+            const extDepId = `${decision.id}-ext-${extDep.id}`;
+            
+            // Position external dependencies to the right of their parent decision
+            const x = parentNode.position.x + EXTERNAL_DEPENDENCY_X_OFFSET;
+            const baseY = parentNode.position.y;
+            const y = baseY + (index - (decision.externalDependencies!.length - 1) / 2) * EXTERNAL_DEPENDENCY_Y_SPACING;
 
-            nodes.push({
-              id: extDepNodeId,
+            calculatedNodes.push({
+              id: extDepId,
               type: 'externalDependency',
-              position: { x: extDepX, y: extDepY },
+              position: { x, y },
               data: {
-                dependency: extDepWithOverdue,
-                parentDecisionId: decisionId,
-                isSelected: selectedDecisionId === extDepNodeId,
-                onSelect: () => onDecisionSelect(extDepNodeId),
+                dependency: extDep,
+                parentDecisionId: decision.id,
+                isSelected: selectedDecisionId === extDepId,
+                onSelect: () => onDecisionSelect(extDepId),
               },
-            });
-
-            // Create edge from decision to external dependency
-            edges.push({
-              id: `${decisionId}-${extDepNodeId}`,
-              source: decisionId,
-              target: extDepNodeId,
-              type: 'straight',
-              style: { 
-                stroke: '#9ca3af',
-                strokeWidth: 1,
-                strokeDasharray: '5,5', // Dashed line for external deps
-              },
-              animated: false,
+              targetPosition: Position.Left,
+              sourcePosition: Position.Right,
             });
           });
         }
       });
-    });
+    }
 
-    // Create edges between decisions
-    Object.values(tree.decisions).forEach(decision => {
-      if (decision.children) {
-        decision.children.forEach(childId => {
-          const child = tree.decisions[childId];
-          
-          // Determine edge color based on path selection
-          let edgeColor = '#64748b'; // Default gray
-          let edgeWidth = 2;
-          
-          if (decision.selectedPath === true && child.selectedPath === true) {
-            edgeColor = '#10b981'; // Green for selected path
-            edgeWidth = 3;
-          } else if (decision.selectedPath === false || child.selectedPath === false) {
-            edgeColor = '#ef4444'; // Red for rejected path
-            edgeWidth = 2;
+    // Create edges for decision dependencies
+    decisions.forEach(decision => {
+      if (decision.dependencies) {
+        decision.dependencies.forEach(depId => {
+          if (tree.decisions[depId]) {
+            const edgeStyle = decision.selectedPath === false ? {
+              strokeDasharray: '5,5',
+              stroke: '#ef4444',
+            } : decision.selectedPath === true ? {
+              stroke: '#10b981',
+              strokeWidth: 2,
+            } : {};
+
+            calculatedEdges.push({
+              id: `${depId}-${decision.id}`,
+              source: depId,
+              target: decision.id,
+              type: 'smoothstep',
+              style: edgeStyle,
+              animated: decision.selectedPath === true,
+            });
           }
-
-          edges.push({
-            id: `${decision.id}-${childId}`,
-            source: decision.id,
-            target: childId,
-            type: 'smoothstep',
-            animated: decision.selectedPath === true && child.selectedPath === true,
-            style: { 
-              stroke: edgeColor,
-              strokeWidth: edgeWidth,
-            },
-          });
         });
       }
     });
 
-    return { nodes, edges };
-  }, [tree, selectedDecisionId, onDecisionSelect]);
+    // Create edges for external dependencies (only if visible)
+    if (showExternalDependencies) {
+      decisions.forEach(decision => {
+        if (decision.externalDependencies && decision.externalDependencies.length > 0) {
+          decision.externalDependencies.forEach(extDep => {
+            const extDepId = `${decision.id}-ext-${extDep.id}`;
+            calculatedEdges.push({
+              id: `${decision.id}-${extDepId}`,
+              source: decision.id,
+              target: extDepId,
+              type: 'smoothstep',
+              style: {
+                strokeDasharray: '3,3',
+                stroke: '#6b7280',
+              },
+              sourceHandle: 'right',
+              targetHandle: 'left',
+            });
+          });
+        }
+      });
+    }
 
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
-
-  // Update nodes and edges when tree changes
-  useEffect(() => {
-    setNodes(calculatedNodes);
-    setEdges(calculatedEdges);
-  }, [calculatedNodes, calculatedEdges, setNodes, setEdges]);
-
-  const onConnect = useCallback(
-    (params: Edge | Connection) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
-  );
+    return { nodes: calculatedNodes, edges: calculatedEdges };
+  }, [tree, selectedDecisionId, onDecisionSelect, showExternalDependencies]);
 
   return (
-    <div style={{ width: '100%', height: '100%' }}>
+    <div className="decision-tree-visualization">
+      <div className="visualization-controls">
+        <button
+          onClick={() => setShowExternalDependencies(!showExternalDependencies)}
+          className={`toggle-external-deps ${showExternalDependencies ? 'active' : ''}`}
+        >
+          {showExternalDependencies ? '🔗 Hide External Dependencies' : '🔗 Show External Dependencies'}
+        </button>
+        <div className="legend">
+          <div className="legend-item">
+            <div className="legend-color selected"></div>
+            <span>Selected Path</span>
+          </div>
+          <div className="legend-item">
+            <div className="legend-color rejected"></div>
+            <span>Rejected Path</span>
+          </div>
+          <div className="legend-item">
+            <div className="legend-color external"></div>
+            <span>External Dependency</span>
+          </div>
+        </div>
+      </div>
+      
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
         nodeTypes={nodeTypes}
         fitView
-        fitViewOptions={{ padding: 0.2 }}
+        fitViewOptions={{ padding: 0.2, maxZoom: 1.5, minZoom: 0.1 }}
+        minZoom={0.1}
+        maxZoom={2}
+        defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
       >
         <Controls />
-        <Background variant={BackgroundVariant.Dots} gap={12} size={1} />
+        <Background variant={BackgroundVariant.Dots} gap={20} size={1} />
       </ReactFlow>
     </div>
   );
