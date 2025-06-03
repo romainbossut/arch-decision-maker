@@ -69,6 +69,8 @@ export interface DecisionNodeData {
   decision: DecisionPoint;
   isSelected: boolean;
   onSelect: () => void;
+  onExpansionChange?: (nodeId: string, isExpanded: boolean) => void;
+  isExpanded?: boolean;
 }
 
 export interface ExternalDependencyNodeData {

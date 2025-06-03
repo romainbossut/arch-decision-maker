@@ -1,9 +1,11 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import ReactFlow, {
   Controls,
   Background,
   BackgroundVariant,
   Position,
+  useNodesState,
+  useEdgesState,
 } from 'reactflow';
 import type { Node, Edge } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -28,25 +30,38 @@ export default function DecisionTreeVisualization({
   selectedDecisionId, 
   onDecisionSelect 
 }: DecisionTreeVisualizationProps) {
-  const [showExternalDependencies, setShowExternalDependencies] = useState(true);
+  const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set());
 
-  // Enhanced layout algorithm for better positioning
-  const { nodes, edges } = useMemo(() => {
+  // Function to handle node expansion/collapse
+  const handleNodeExpansion = useCallback((nodeId: string, isExpanded: boolean) => {
+    setExpandedNodes(prev => {
+      const newSet = new Set(prev);
+      if (isExpanded) {
+        newSet.add(nodeId);
+      } else {
+        newSet.delete(nodeId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  // Enhanced layout algorithm that responds to node expansion
+  const { initialNodes, initialEdges } = useMemo(() => {
     const decisions = Object.values(tree.decisions);
     const calculatedNodes: Node[] = [];
     const calculatedEdges: Edge[] = [];
 
-    // Configuration for layout
-    const HORIZONTAL_SPACING = 350;
-    const VERTICAL_SPACING = 200;
-    const EXTERNAL_DEPENDENCY_X_OFFSET = 200;
-    const EXTERNAL_DEPENDENCY_Y_SPACING = 120;
+    // Configuration for reactive layout with increased spacing
+    const BASE_HORIZONTAL_SPACING = 400;
+    const BASE_VERTICAL_SPACING = 200;
+    const EXPANDED_NODE_HEIGHT = 350; // Estimated height of expanded node
+    const BASE_NODE_HEIGHT = 180; // Estimated height of base node
+    const MIN_SPACING_BUFFER = 50; // Minimum buffer between nodes
 
     // Calculate levels for hierarchical layout
     const levels: Record<string, number> = {};
     const processed = new Set<string>();
 
-    // Helper function to calculate the depth/level of each decision
     function calculateLevel(decisionId: string, currentLevel = 0): number {
       if (processed.has(decisionId)) {
         return levels[decisionId] || 0;
@@ -79,67 +94,60 @@ export default function DecisionTreeVisualization({
       levelGroups[level].push(id);
     });
 
-    // Position decision nodes
+    // Position decision nodes with enhanced reactive spacing
     Object.entries(levelGroups).forEach(([levelStr, decisionIds]) => {
       const level = parseInt(levelStr);
-      const x = level * HORIZONTAL_SPACING;
+      const x = level * BASE_HORIZONTAL_SPACING;
       
-      decisionIds.forEach((decisionId, index) => {
+      // Sort nodes to keep consistent ordering
+      const sortedDecisionIds = [...decisionIds].sort();
+      
+      // Calculate positions with proper spacing for expanded nodes
+      let currentY = 0;
+      const totalNodes = sortedDecisionIds.length;
+      
+      // Start from the top and work down, giving each node appropriate space
+      const startY = -(totalNodes - 1) * BASE_VERTICAL_SPACING / 2;
+      currentY = startY;
+      
+      sortedDecisionIds.forEach((decisionId, index) => {
         const decision = tree.decisions[decisionId];
         if (!decision) return;
 
-        // Center multiple nodes at the same level
-        const totalInLevel = decisionIds.length;
-        const yOffset = (index - (totalInLevel - 1) / 2) * VERTICAL_SPACING;
-        const y = yOffset;
+        const isExpanded = expandedNodes.has(decisionId);
+        
+        // Calculate the space this node needs
+        const nodeHeight = isExpanded ? EXPANDED_NODE_HEIGHT : BASE_NODE_HEIGHT;
+        
+        // If this is not the first node, add spacing from the previous node
+        if (index > 0) {
+          const prevNodeId = sortedDecisionIds[index - 1];
+          const prevIsExpanded = expandedNodes.has(prevNodeId);
+          const prevNodeHeight = prevIsExpanded ? EXPANDED_NODE_HEIGHT : BASE_NODE_HEIGHT;
+          
+          // Calculate the spacing needed between previous node and current node
+          const requiredSpacing = (prevNodeHeight / 2) + (nodeHeight / 2) + MIN_SPACING_BUFFER;
+          const actualSpacing = Math.max(BASE_VERTICAL_SPACING, requiredSpacing);
+          
+          currentY += actualSpacing;
+        }
 
         calculatedNodes.push({
           id: decisionId,
           type: 'decision',
-          position: { x, y },
+          position: { x, y: currentY },
           data: {
             decision,
             isSelected: selectedDecisionId === decisionId,
             onSelect: () => onDecisionSelect(decisionId),
+            onExpansionChange: handleNodeExpansion,
+            isExpanded,
           },
           targetPosition: Position.Left,
           sourcePosition: Position.Right,
         });
       });
     });
-
-    // Position external dependency nodes (only if visible)
-    if (showExternalDependencies) {
-      decisions.forEach(decision => {
-        if (decision.externalDependencies && decision.externalDependencies.length > 0) {
-          const parentNode = calculatedNodes.find(node => node.id === decision.id);
-          if (!parentNode) return;
-
-          decision.externalDependencies.forEach((extDep, index) => {
-            const extDepId = `${decision.id}-ext-${extDep.id}`;
-            
-            // Position external dependencies to the right of their parent decision
-            const x = parentNode.position.x + EXTERNAL_DEPENDENCY_X_OFFSET;
-            const baseY = parentNode.position.y;
-            const y = baseY + (index - (decision.externalDependencies!.length - 1) / 2) * EXTERNAL_DEPENDENCY_Y_SPACING;
-
-            calculatedNodes.push({
-              id: extDepId,
-              type: 'externalDependency',
-              position: { x, y },
-              data: {
-                dependency: extDep,
-                parentDecisionId: decision.id,
-                isSelected: selectedDecisionId === extDepId,
-                onSelect: () => onDecisionSelect(extDepId),
-              },
-              targetPosition: Position.Left,
-              sourcePosition: Position.Right,
-            });
-          });
-        }
-      });
-    }
 
     // Create edges for decision dependencies
     decisions.forEach(decision => {
@@ -167,41 +175,21 @@ export default function DecisionTreeVisualization({
       }
     });
 
-    // Create edges for external dependencies (only if visible)
-    if (showExternalDependencies) {
-      decisions.forEach(decision => {
-        if (decision.externalDependencies && decision.externalDependencies.length > 0) {
-          decision.externalDependencies.forEach(extDep => {
-            const extDepId = `${decision.id}-ext-${extDep.id}`;
-            calculatedEdges.push({
-              id: `${decision.id}-${extDepId}`,
-              source: decision.id,
-              target: extDepId,
-              type: 'smoothstep',
-              style: {
-                strokeDasharray: '3,3',
-                stroke: '#6b7280',
-              },
-              sourceHandle: 'right',
-              targetHandle: 'left',
-            });
-          });
-        }
-      });
-    }
+    return { initialNodes: calculatedNodes, initialEdges: calculatedEdges };
+  }, [tree, selectedDecisionId, onDecisionSelect, expandedNodes, handleNodeExpansion]);
 
-    return { nodes: calculatedNodes, edges: calculatedEdges };
-  }, [tree, selectedDecisionId, onDecisionSelect, showExternalDependencies]);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  // Update nodes when the layout changes
+  useEffect(() => {
+    setNodes(initialNodes);
+    setEdges(initialEdges);
+  }, [initialNodes, initialEdges, setNodes, setEdges]);
 
   return (
     <div className="decision-tree-visualization">
       <div className="visualization-controls">
-        <button
-          onClick={() => setShowExternalDependencies(!showExternalDependencies)}
-          className={`toggle-external-deps ${showExternalDependencies ? 'active' : ''}`}
-        >
-          {showExternalDependencies ? '🔗 Hide External Dependencies' : '🔗 Show External Dependencies'}
-        </button>
         <div className="legend">
           <div className="legend-item">
             <div className="legend-color selected"></div>
@@ -213,7 +201,7 @@ export default function DecisionTreeVisualization({
           </div>
           <div className="legend-item">
             <div className="legend-color external"></div>
-            <span>External Dependency</span>
+            <span>External Dependencies (in nodes)</span>
           </div>
         </div>
       </div>
@@ -221,12 +209,14 @@ export default function DecisionTreeVisualization({
       <ReactFlow
         nodes={nodes}
         edges={edges}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
         nodeTypes={nodeTypes}
         fitView
-        fitViewOptions={{ padding: 0.2, maxZoom: 1.5, minZoom: 0.1 }}
-        minZoom={0.1}
-        maxZoom={2}
-        defaultViewport={{ x: 0, y: 0, zoom: 0.8 }}
+        fitViewOptions={{ padding: 0.3, maxZoom: 1.2, minZoom: 0.05 }}
+        minZoom={0.05}
+        maxZoom={1.5}
+        defaultViewport={{ x: 0, y: 0, zoom: 0.6 }}
       >
         <Controls />
         <Background variant={BackgroundVariant.Dots} gap={20} size={1} />

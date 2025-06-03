@@ -8,7 +8,7 @@ interface DecisionNodeProps {
 }
 
 export default function DecisionNode({ data }: DecisionNodeProps) {
-  const { decision, isSelected, onSelect } = data;
+  const { decision, isSelected, onSelect, onExpansionChange, isExpanded } = data;
 
   const getStatusColor = (status?: string) => {
     switch (status) {
@@ -26,9 +26,26 @@ export default function DecisionNode({ data }: DecisionNodeProps) {
     return '';
   };
 
+  const handleExternalDepsClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (onExpansionChange) {
+      onExpansionChange(decision.id, !isExpanded);
+    }
+  };
+
+  const getExternalDepStatus = (extDep: any) => {
+    if (extDep.expectedResolutionDate) {
+      const isOverdue = new Date(extDep.expectedResolutionDate) < new Date();
+      return isOverdue ? 'overdue' : 'scheduled';
+    }
+    return 'no-date';
+  };
+
+  const showExternalDeps = isExpanded || false;
+
   return (
     <div 
-      className={`decision-node ${getPathClass()} ${isSelected ? 'selected' : ''}`}
+      className={`decision-node ${getPathClass()} ${isSelected ? 'selected' : ''} ${showExternalDeps ? 'expanded' : ''}`}
       onClick={onSelect}
       style={{
         borderColor: getStatusColor(decision.status),
@@ -81,8 +98,42 @@ export default function DecisionNode({ data }: DecisionNodeProps) {
       )}
 
       {decision.externalDependencies && decision.externalDependencies.length > 0 && (
-        <div className="external-deps-indicator">
-          🔗 {decision.externalDependencies.length} external deps
+        <div className="external-deps-section">
+          <div 
+            className="external-deps-header"
+            onClick={handleExternalDepsClick}
+          >
+            <span className="external-deps-count">
+              🔗 {decision.externalDependencies.length} external dep{decision.externalDependencies.length > 1 ? 's' : ''}
+            </span>
+            <span className={`expand-arrow ${showExternalDeps ? 'expanded' : ''}`}>
+              ▼
+            </span>
+          </div>
+          
+          {showExternalDeps && (
+            <div className="external-deps-list">
+              {decision.externalDependencies.map((extDep, index) => {
+                const status = getExternalDepStatus(extDep);
+                const isOverdue = status === 'overdue';
+                
+                return (
+                  <div key={index} className={`external-dep-item ${status}`}>
+                    <div className="external-dep-title">
+                      {extDep.title}
+                      {isOverdue && <span className="overdue-badge">⚠️</span>}
+                    </div>
+                    <div className="external-dep-id">ID: {extDep.id}</div>
+                    {extDep.expectedResolutionDate && (
+                      <div className="external-dep-date">
+                        📅 {isOverdue ? 'Overdue: ' : 'Due: '}{extDep.expectedResolutionDate}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>
