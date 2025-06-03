@@ -144,18 +144,18 @@ decisions:
         - id: "pro-1"
           title: "Great Performance"
           description: "Significantly improves performance"
-          rating: 5
+          impact: "high"
         - id: "pro-2"
           title: "Easy to Use"
-          rating: 4
+          impact: "major"
       cons:
         - id: "con-1"
           title: "High Cost"
           description: "Expensive to implement"
-          rating: 3
+          impact: "major"
         - id: "con-2"
           title: "Learning Curve"
-          rating: 2
+          impact: "minor"
       `;
 
       const result = parseYamlContent(yamlContent);
@@ -169,26 +169,26 @@ decisions:
         id: 'pro-1',
         title: 'Great Performance',
         description: 'Significantly improves performance',
-        rating: 5
+        impact: 'high'
       });
       
       expect(result.decisions['decision-1'].prosCons?.pros![1]).toEqual({
         id: 'pro-2',
         title: 'Easy to Use',
-        rating: 4
+        impact: 'major'
       });
       
       expect(result.decisions['decision-1'].prosCons?.cons![0]).toEqual({
         id: 'con-1',
         title: 'High Cost',
         description: 'Expensive to implement',
-        rating: 3
+        impact: 'major'
       });
       
       expect(result.decisions['decision-1'].prosCons?.cons![1]).toEqual({
         id: 'con-2',
         title: 'Learning Curve',
-        rating: 2
+        impact: 'minor'
       });
     });
 
@@ -459,7 +459,7 @@ decisions:
                   id: 'pro-1',
                   title: 'Great Performance',
                   description: 'Significantly improves performance',
-                  rating: 5
+                  impact: 'high'
                 }
               ],
               cons: [
@@ -467,7 +467,7 @@ decisions:
                   id: 'con-1',
                   title: 'High Cost',
                   description: 'Expensive to implement',
-                  rating: 3
+                  impact: 'major'
                 }
               ]
             }
@@ -495,14 +495,14 @@ decisions:
                 {
                   id: 'duplicate-id',
                   title: 'First Pro',
-                  rating: 5
+                  impact: 'high'
                 }
               ],
               cons: [
                 {
                   id: 'duplicate-id',
                   title: 'First Con',
-                  rating: 3
+                  impact: 'major'
                 }
               ]
             }
@@ -531,12 +531,12 @@ decisions:
                 {
                   id: 'duplicate-pro',
                   title: 'First Pro',
-                  rating: 5
+                  impact: 'high'
                 },
                 {
                   id: 'duplicate-pro',
                   title: 'Second Pro',
-                  rating: 4
+                  impact: 'major'
                 }
               ]
             }
@@ -550,9 +550,9 @@ decisions:
       expect(errors[0]).toContain('duplicate pros/cons ID: duplicate-pro');
     });
 
-    it('should detect invalid rating ranges in pros and cons', () => {
+    it('should detect invalid impact levels in pros and cons', () => {
       const tree = {
-        name: 'Invalid Ratings Tree',
+        name: 'Invalid Impact Levels Tree',
         decisions: {
           'a': { 
             id: 'a', 
@@ -564,30 +564,30 @@ decisions:
               pros: [
                 {
                   id: 'pro-invalid-low',
-                  title: 'Pro with Invalid Low Rating',
-                  rating: 0
+                  title: 'Pro with Invalid Low Impact',
+                  impact: 'low' as any // Invalid impact level
                 },
                 {
                   id: 'pro-invalid-high',
-                  title: 'Pro with Invalid High Rating',
-                  rating: 6
+                  title: 'Pro with Invalid Super Impact',
+                  impact: 'super' as any // Invalid impact level
                 },
                 {
-                  id: 'pro-invalid-float',
-                  title: 'Pro with Float Rating',
-                  rating: 3.5
+                  id: 'pro-valid',
+                  title: 'Pro with Valid Impact',
+                  impact: 'major' as const
                 }
               ],
               cons: [
                 {
-                  id: 'con-invalid-negative',
-                  title: 'Con with Negative Rating',
-                  rating: -1
+                  id: 'con-invalid-critical',
+                  title: 'Con with Invalid Critical Impact',
+                  impact: 'critical' as any // Invalid impact level
                 },
                 {
                   id: 'con-valid',
-                  title: 'Con with Valid Rating',
-                  rating: 3
+                  title: 'Con with Valid Impact',
+                  impact: 'minor' as const
                 }
               ]
             }
@@ -597,11 +597,10 @@ decisions:
       };
 
       const errors = validateDecisionTree(tree);
-      expect(errors).toHaveLength(4);
-      expect(errors[0]).toContain('pro "pro-invalid-low" has invalid rating');
-      expect(errors[1]).toContain('pro "pro-invalid-high" has invalid rating');
-      expect(errors[2]).toContain('pro "pro-invalid-float" has invalid rating');
-      expect(errors[3]).toContain('con "con-invalid-negative" has invalid rating');
+      expect(errors).toHaveLength(3);
+      expect(errors[0]).toContain('pro "pro-invalid-low" has invalid impact level');
+      expect(errors[1]).toContain('pro "pro-invalid-high" has invalid impact level');
+      expect(errors[2]).toContain('con "con-invalid-critical" has invalid impact level');
     });
 
     it('should handle empty pros and cons', () => {
@@ -642,14 +641,14 @@ decisions:
                 {
                   id: 'pro-no-desc',
                   title: 'Pro without Description',
-                  rating: 4
+                  impact: 'major'
                 }
               ],
               cons: [
                 {
                   id: 'con-no-desc',
                   title: 'Con without Description',
-                  rating: 2
+                  impact: 'minor'
                 }
               ]
             }

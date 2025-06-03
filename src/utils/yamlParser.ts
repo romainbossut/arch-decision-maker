@@ -217,9 +217,10 @@ export function validateDecisionTree(tree: ArchitectureDecisionTree): string[] {
           }
           prosConsIds.add(pro.id);
 
-          // Validate rating range
-          if (!Number.isInteger(pro.rating) || pro.rating < 1 || pro.rating > 5) {
-            errors.push(`Decision "${decision.id}" pro "${pro.id}" has invalid rating. Rating must be an integer between 1 and 5.`);
+          // Validate impact level
+          const validImpacts = ['minor', 'major', 'high'];
+          if (!validImpacts.includes(pro.impact)) {
+            errors.push(`Decision "${decision.id}" pro "${pro.id}" has invalid impact level. Must be one of: minor, major, high`);
           }
         });
       }
@@ -233,9 +234,10 @@ export function validateDecisionTree(tree: ArchitectureDecisionTree): string[] {
           }
           prosConsIds.add(con.id);
 
-          // Validate rating range
-          if (!Number.isInteger(con.rating) || con.rating < 1 || con.rating > 5) {
-            errors.push(`Decision "${decision.id}" con "${con.id}" has invalid rating. Rating must be an integer between 1 and 5.`);
+          // Validate impact level
+          const validImpacts = ['minor', 'major', 'high'];
+          if (!validImpacts.includes(con.impact)) {
+            errors.push(`Decision "${decision.id}" con "${con.id}" has invalid impact level. Must be one of: minor, major, high`);
           }
         });
       }

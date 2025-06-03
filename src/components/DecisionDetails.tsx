@@ -1,10 +1,12 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
-import type { DecisionPoint, ProsConsItem } from '../types/architecture';
+import type { DecisionPoint, ExternalDependency, ProsConsItem } from '../types/architecture';
 import './DecisionDetails.css';
 
 interface DecisionDetailsProps {
   decision?: DecisionPoint;
+  externalDependency?: ExternalDependency;
+  parentDecisionId?: string;
 }
 
 function formatDate(dateString: string): string {
@@ -23,93 +25,148 @@ function isDateOverdue(dateString: string): boolean {
   return date < today;
 }
 
-function renderStarRating(rating: number): React.JSX.Element {
-  const stars = [];
-  for (let i = 1; i <= 5; i++) {
-    stars.push(
-      <span key={i} className={`star ${i <= rating ? 'filled' : 'empty'}`}>
-        ⭐
-      </span>
-    );
-  }
-  return <div className="star-rating">{stars}</div>;
+function renderImpactIndicator(impact: 'minor' | 'major' | 'high'): React.JSX.Element {
+  const impactConfig = {
+    minor: { icon: '○', label: 'Minor', class: 'impact-minor' },
+    major: { icon: '◐', label: 'Major', class: 'impact-major' },
+    high: { icon: '●', label: 'High', class: 'impact-high' }
+  };
+  
+  const config = impactConfig[impact];
+  return (
+    <span className={`impact-indicator ${config.class}`}>
+      <span className="impact-icon">{config.icon}</span>
+      <span className="impact-label">{config.label}</span>
+    </span>
+  );
 }
 
 function calculateOverallScore(items: ProsConsItem[]): number {
-  if (!items || items.length === 0) return 0;
-  const totalRating = items.reduce((sum, item) => sum + item.rating, 0);
-  return Math.round((totalRating / items.length) * 10) / 10; // Round to 1 decimal place
+  if (items.length === 0) return 0;
+  // Convert impact to numeric values for calculation
+  const impactValues = { minor: 1, major: 3, high: 5 };
+  const sum = items.reduce((acc, item) => acc + impactValues[item.impact], 0);
+  return Math.round((sum / items.length) * 10) / 10;
 }
 
-export default function DecisionDetails({ decision }: DecisionDetailsProps) {
-  if (!decision) {
+export default function DecisionDetails({ 
+  decision, 
+  externalDependency,
+  parentDecisionId 
+}: DecisionDetailsProps) {
+  if (externalDependency) {
     return (
       <div className="decision-details">
-        <div className="no-selection">
-          <h3>Select a Decision Point</h3>
-          <p>Click on a decision point in the tree to view its details.</p>
+        <div className="details-header">
+          <h2>🔗 External Dependency</h2>
+          <div className="decision-meta">
+            <span className="decision-id">ID: {externalDependency.id}</span>
+            {parentDecisionId && (
+              <span className="parent-decision">Blocks: {parentDecisionId}</span>
+            )}
+          </div>
+        </div>
+
+        <div className="details-content">
+          <div className="details-section">
+            <h3>{externalDependency.title}</h3>
+            
+            {externalDependency.description && (
+              <div className="description">
+                <ReactMarkdown>{externalDependency.description}</ReactMarkdown>
+              </div>
+            )}
+
+            {externalDependency.expectedResolutionDate && (
+              <div className="external-dependency-info">
+                <h4>📅 Timeline</h4>
+                <div className="timeline-info">
+                  <span className="label">Expected Resolution:</span>
+                  <span className={`date ${new Date(externalDependency.expectedResolutionDate) < new Date() ? 'overdue' : ''}`}>
+                    {externalDependency.expectedResolutionDate}
+                    {new Date(externalDependency.expectedResolutionDate) < new Date() && (
+                      <span className="overdue-badge">⚠️ Overdue</span>
+                    )}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     );
   }
+
+  if (!decision) {
+    return (
+      <div className="decision-details">
+        <div className="details-placeholder">
+          <h3>Select a Decision Point or External Dependency</h3>
+          <p>Click on any node in the tree to see detailed information.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const isOverdue = (dateString?: string): boolean => {
+    if (!dateString) return false;
+    return new Date(dateString) < new Date();
+  };
 
   const prosOverallScore = decision.prosCons?.pros ? calculateOverallScore(decision.prosCons.pros) : null;
   const consOverallScore = decision.prosCons?.cons ? calculateOverallScore(decision.prosCons.cons) : null;
 
   return (
     <div className="decision-details">
-      <div className="decision-header">
-        <h2>{decision.title}</h2>
-        <div className="decision-id">ID: {decision.id}</div>
+      <div className="details-header">
+        <h2>📋 {decision.title}</h2>
+        <div className="decision-meta">
+          <span className="decision-id">ID: {decision.id}</span>
+          {decision.selectedPath !== undefined && (
+            <span className={`path-status ${decision.selectedPath ? 'selected' : 'rejected'}`}>
+              {decision.selectedPath ? '✅ Selected' : '❌ Rejected'}
+            </span>
+          )}
+        </div>
       </div>
 
-      <div className="decision-content">
-        <div className="description-section">
+      <div className="details-content">
+        <div className="details-section">
           <h3>Description</h3>
-          <div className="description-content">
+          <div className="description">
             <ReactMarkdown>{decision.description}</ReactMarkdown>
           </div>
         </div>
 
         {decision.dependencies && decision.dependencies.length > 0 && (
-          <div className="dependencies-section">
-            <h3>Internal Dependencies</h3>
-            <ul className="dependencies-list">
-              {decision.dependencies.map((depId) => (
-                <li key={depId} className="dependency-item">
-                  {depId}
-                </li>
+          <div className="details-section">
+            <h3>🔗 Dependencies</h3>
+            <ul className="dependency-list">
+              {decision.dependencies.map((dep) => (
+                <li key={dep}>{dep}</li>
               ))}
             </ul>
           </div>
         )}
 
         {decision.externalDependencies && decision.externalDependencies.length > 0 && (
-          <div className="external-dependencies-section">
-            <h3>External Dependencies</h3>
-            <div className="external-dependencies-list">
+          <div className="details-section">
+            <h3>🔗 External Dependencies</h3>
+            <div className="external-dependencies">
               {decision.externalDependencies.map((extDep) => (
-                <div key={extDep.id} className="external-dependency-item">
-                  <div className="external-dependency-header">
-                    <h4 className="external-dependency-title">{extDep.title}</h4>
-                    <span className="external-dependency-id">ID: {extDep.id}</span>
+                <div key={extDep.id} className={`external-dependency ${isOverdue(extDep.expectedResolutionDate) ? 'overdue' : ''}`}>
+                  <div className="ext-dep-header">
+                    <h4>{extDep.title}</h4>
+                    {extDep.expectedResolutionDate && (
+                      <span className={`ext-dep-date ${isOverdue(extDep.expectedResolutionDate) ? 'overdue' : ''}`}>
+                        {isOverdue(extDep.expectedResolutionDate) ? '⚠️ Overdue: ' : '📅 Due: '}
+                        {extDep.expectedResolutionDate}
+                      </span>
+                    )}
                   </div>
-                  
                   {extDep.description && (
-                    <div className="external-dependency-description">
+                    <div className="ext-dep-description">
                       <ReactMarkdown>{extDep.description}</ReactMarkdown>
-                    </div>
-                  )}
-                  
-                  {extDep.expectedResolutionDate && (
-                    <div className={`external-dependency-date ${
-                      isDateOverdue(extDep.expectedResolutionDate) ? 'overdue' : ''
-                    }`}>
-                      <span className="date-label">Expected Resolution:</span>
-                      <span className="date-value">{formatDate(extDep.expectedResolutionDate)}</span>
-                      {isDateOverdue(extDep.expectedResolutionDate) && (
-                        <span className="overdue-indicator">⚠️ Overdue</span>
-                      )}
                     </div>
                   )}
                 </div>
@@ -118,34 +175,25 @@ export default function DecisionDetails({ decision }: DecisionDetailsProps) {
           </div>
         )}
 
-        {decision.prosCons && ((decision.prosCons.pros && decision.prosCons.pros.length > 0) || (decision.prosCons.cons && decision.prosCons.cons.length > 0)) && (
-          <div className="pros-cons-section">
-            <h3>Pros & Cons Analysis</h3>
-            
+        {decision.prosCons && (
+          (decision.prosCons.pros && decision.prosCons.pros.length > 0) ||
+          (decision.prosCons.cons && decision.prosCons.cons.length > 0)
+        ) && (
+          <div className="details-section">
+            <h3>⚖️ Pros & Cons Analysis</h3>
             <div className="pros-cons-container">
               {decision.prosCons.pros && decision.prosCons.pros.length > 0 && (
                 <div className="pros-section">
-                  <div className="pros-header">
-                    <h4 className="pros-title">✅ Pros</h4>
-                    {prosOverallScore && (
-                      <div className="overall-score pros-score">
-                        Overall: {prosOverallScore}/5
-                      </div>
-                    )}
-                  </div>
+                  <h4 className="pros-title">Pros</h4>
                   <div className="pros-cons-list">
                     {decision.prosCons.pros.map((pro) => (
-                      <div key={pro.id} className="pros-cons-item pros-item">
-                        <div className="pros-cons-header">
-                          <h5 className="pros-cons-title">{pro.title}</h5>
-                          <div className="rating-container">
-                            {renderStarRating(pro.rating)}
-                            <span className="rating-value">{pro.rating}/5</span>
-                          </div>
+                      <div key={pro.id} className="pros-cons-item pros">
+                        <div className="item-header">
+                          <span className="item-title">{pro.title}</span>
+                          {renderImpactIndicator(pro.impact)}
                         </div>
-                        
                         {pro.description && (
-                          <div className="pros-cons-description">
+                          <div className="item-description">
                             <ReactMarkdown>{pro.description}</ReactMarkdown>
                           </div>
                         )}
@@ -157,27 +205,16 @@ export default function DecisionDetails({ decision }: DecisionDetailsProps) {
 
               {decision.prosCons.cons && decision.prosCons.cons.length > 0 && (
                 <div className="cons-section">
-                  <div className="cons-header">
-                    <h4 className="cons-title">❌ Cons</h4>
-                    {consOverallScore && (
-                      <div className="overall-score cons-score">
-                        Overall: {consOverallScore}/5
-                      </div>
-                    )}
-                  </div>
+                  <h4 className="cons-title">Cons</h4>
                   <div className="pros-cons-list">
                     {decision.prosCons.cons.map((con) => (
-                      <div key={con.id} className="pros-cons-item cons-item">
-                        <div className="pros-cons-header">
-                          <h5 className="pros-cons-title">{con.title}</h5>
-                          <div className="rating-container">
-                            {renderStarRating(con.rating)}
-                            <span className="rating-value">{con.rating}/5</span>
-                          </div>
+                      <div key={con.id} className="pros-cons-item cons">
+                        <div className="item-header">
+                          <span className="item-title">{con.title}</span>
+                          {renderImpactIndicator(con.impact)}
                         </div>
-                        
                         {con.description && (
-                          <div className="pros-cons-description">
+                          <div className="item-description">
                             <ReactMarkdown>{con.description}</ReactMarkdown>
                           </div>
                         )}
@@ -191,20 +228,12 @@ export default function DecisionDetails({ decision }: DecisionDetailsProps) {
         )}
 
         {decision.drawIoUrl && (
-          <div className="diagram-section">
-            <h3>Architecture Diagram</h3>
+          <div className="details-section">
+            <h3>📊 Architecture Diagram</h3>
             <div className="diagram-link">
-              <a
-                href={decision.drawIoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="diagram-button"
-              >
+              <a href={decision.drawIoUrl} target="_blank" rel="noopener noreferrer">
                 🎨 Open in Draw.io
               </a>
-              <p className="diagram-description">
-                Click the link above to view the architecture diagram for this decision.
-              </p>
             </div>
           </div>
         )}

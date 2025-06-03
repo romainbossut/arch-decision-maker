@@ -11,6 +11,7 @@ import type { Node, Edge, Connection, NodeTypes } from 'reactflow';
 import 'reactflow/dist/style.css';
 import type { ArchitectureDecisionTree } from '../types/architecture';
 import DecisionNode from './DecisionNode';
+import ExternalDependencyNode from './ExternalDependencyNode';
 
 interface DecisionTreeVisualizationProps {
   tree: ArchitectureDecisionTree;
@@ -20,6 +21,7 @@ interface DecisionTreeVisualizationProps {
 
 const nodeTypes: NodeTypes = {
   decision: DecisionNode,
+  externalDependency: ExternalDependencyNode,
 };
 
 export default function DecisionTreeVisualization({
@@ -59,12 +61,12 @@ export default function DecisionTreeVisualization({
     // Start from root decisions
     tree.rootDecisions.forEach(rootId => calculateLevel(rootId));
 
-    // Create nodes with calculated positions
+    // Create decision nodes with calculated positions
     Object.entries(levels).forEach(([level, decisionIds]) => {
       decisionIds.forEach((decisionId, index) => {
         const decision = tree.decisions[decisionId];
-        const x = (index - decisionIds.length / 2) * 250 + 300;
-        const y = parseInt(level) * 150 + 100;
+        const x = (index - decisionIds.length / 2) * 300 + 400; // Increased spacing for external deps
+        const y = parseInt(level) * 200 + 100; // Increased vertical spacing
 
         nodes.push({
           id: decisionId,
@@ -76,10 +78,53 @@ export default function DecisionTreeVisualization({
             onSelect: () => onDecisionSelect(decisionId),
           },
         });
+
+        // Add external dependency nodes for this decision
+        if (decision.externalDependencies && decision.externalDependencies.length > 0) {
+          decision.externalDependencies.forEach((extDep, extIndex) => {
+            const extDepNodeId = `${decisionId}-ext-${extDep.id}`;
+            const extDepX = x + 200 + (extIndex * 140); // Position to the right of decision
+            const extDepY = y - 20; // Slightly above decision level
+
+            // Mark as overdue if past expected resolution date
+            const extDepWithOverdue = {
+              ...extDep,
+              isOverdue: extDep.expectedResolutionDate 
+                ? new Date(extDep.expectedResolutionDate) < new Date()
+                : false
+            };
+
+            nodes.push({
+              id: extDepNodeId,
+              type: 'externalDependency',
+              position: { x: extDepX, y: extDepY },
+              data: {
+                dependency: extDepWithOverdue,
+                parentDecisionId: decisionId,
+                isSelected: selectedDecisionId === extDepNodeId,
+                onSelect: () => onDecisionSelect(extDepNodeId),
+              },
+            });
+
+            // Create edge from decision to external dependency
+            edges.push({
+              id: `${decisionId}-${extDepNodeId}`,
+              source: decisionId,
+              target: extDepNodeId,
+              type: 'straight',
+              style: { 
+                stroke: '#9ca3af',
+                strokeWidth: 1,
+                strokeDasharray: '5,5', // Dashed line for external deps
+              },
+              animated: false,
+            });
+          });
+        }
       });
     });
 
-    // Create edges
+    // Create edges between decisions
     Object.values(tree.decisions).forEach(decision => {
       if (decision.children) {
         decision.children.forEach(childId => {

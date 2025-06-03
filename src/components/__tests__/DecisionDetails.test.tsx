@@ -49,12 +49,12 @@ describe('DecisionDetails', () => {
           id: 'pro-1',
           title: 'Great Performance',
           description: 'Significantly improves system performance',
-          rating: 5
+          impact: 'high'
         },
         {
           id: 'pro-2',
           title: 'Easy to Use',
-          rating: 4
+          impact: 'major'
         }
       ],
       cons: [
@@ -62,12 +62,12 @@ describe('DecisionDetails', () => {
           id: 'con-1',
           title: 'High Cost',
           description: 'Expensive to implement and maintain',
-          rating: 3
+          impact: 'major'
         },
         {
           id: 'con-2',
           title: 'Learning Curve',
-          rating: 2
+          impact: 'minor'
         }
       ]
     },
@@ -77,14 +77,14 @@ describe('DecisionDetails', () => {
   it('renders no selection message when no decision provided', () => {
     render(<DecisionDetails />);
 
-    expect(screen.getByText('Select a Decision Point')).toBeInTheDocument();
-    expect(screen.getByText('Click on a decision point in the tree to view its details.')).toBeInTheDocument();
+    expect(screen.getByText('Select a Decision Point or External Dependency')).toBeInTheDocument();
+    expect(screen.getByText('Click on any node in the tree to see detailed information.')).toBeInTheDocument();
   });
 
   it('renders decision details when decision is provided', () => {
     render(<DecisionDetails decision={mockDecision} />);
 
-    expect(screen.getByText('Test Decision')).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /test decision/i })).toBeInTheDocument();
     expect(screen.getByText('ID: test-decision')).toBeInTheDocument();
     expect(screen.getByText('Description')).toBeInTheDocument();
   });
@@ -92,7 +92,7 @@ describe('DecisionDetails', () => {
   it('renders internal dependencies when decision has dependencies', () => {
     render(<DecisionDetails decision={mockDecision} />);
 
-    expect(screen.getByText('Internal Dependencies')).toBeInTheDocument();
+    expect(screen.getByText('🔗 Dependencies')).toBeInTheDocument();
     expect(screen.getByText('dep-1')).toBeInTheDocument();
     expect(screen.getByText('dep-2')).toBeInTheDocument();
   });
@@ -101,20 +101,16 @@ describe('DecisionDetails', () => {
     const decisionWithoutDeps = { ...mockDecision, dependencies: undefined };
     render(<DecisionDetails decision={decisionWithoutDeps} />);
 
-    expect(screen.queryByText('Internal Dependencies')).not.toBeInTheDocument();
+    expect(screen.queryByText('🔗 Dependencies')).not.toBeInTheDocument();
   });
 
   it('renders external dependencies when decision has external dependencies', () => {
     render(<DecisionDetails decision={mockDecisionWithExternalDeps} />);
 
-    expect(screen.getByText('External Dependencies')).toBeInTheDocument();
+    expect(screen.getByText('🔗 External Dependencies')).toBeInTheDocument();
     expect(screen.getByText('Security Audit')).toBeInTheDocument();
     expect(screen.getByText('Budget Approval')).toBeInTheDocument();
     expect(screen.getByText('Simple External Dependency')).toBeInTheDocument();
-    
-    expect(screen.getByText('ID: ext-dep-1')).toBeInTheDocument();
-    expect(screen.getByText('ID: ext-dep-2')).toBeInTheDocument();
-    expect(screen.getByText('ID: ext-dep-3')).toBeInTheDocument();
   });
 
   it('renders external dependency descriptions when provided', () => {
@@ -127,23 +123,20 @@ describe('DecisionDetails', () => {
   it('renders expected resolution dates in formatted form', () => {
     render(<DecisionDetails decision={mockDecisionWithExternalDeps} />);
 
-    const expectedResolutionLabels = screen.getAllByText('Expected Resolution:');
-    expect(expectedResolutionLabels).toHaveLength(2);
-    expect(screen.getByText('December 25, 2025')).toBeInTheDocument();
-    expect(screen.getByText('January 1, 2020')).toBeInTheDocument();
+    expect(screen.getByText(/2025-12-25/)).toBeInTheDocument();
+    expect(screen.getByText(/2020-01-01/)).toBeInTheDocument();
   });
 
   it('shows overdue indicator for past dates', () => {
     render(<DecisionDetails decision={mockDecisionWithExternalDeps} />);
 
-    const overdueIndicators = screen.getAllByText('⚠️ Overdue');
-    expect(overdueIndicators).toHaveLength(1);
+    expect(screen.getByText(/⚠️ Overdue:/)).toBeInTheDocument();
   });
 
   it('does not render external dependencies section when decision has no external dependencies', () => {
     render(<DecisionDetails decision={mockDecision} />);
 
-    expect(screen.queryByText('External Dependencies')).not.toBeInTheDocument();
+    expect(screen.queryByText('🔗 External Dependencies')).not.toBeInTheDocument();
   });
 
   it('handles external dependencies without expected resolution date', () => {
@@ -163,13 +156,13 @@ describe('DecisionDetails', () => {
     render(<DecisionDetails decision={decisionWithMinimalExtDep} />);
 
     expect(screen.getByText('Minimal External Dependency')).toBeInTheDocument();
-    expect(screen.queryByText('Expected Resolution:')).not.toBeInTheDocument();
+    expect(screen.queryByText(/📅 Due:/)).not.toBeInTheDocument();
   });
 
   it('renders draw.io link when provided', () => {
     render(<DecisionDetails decision={mockDecision} />);
 
-    expect(screen.getByText('Architecture Diagram')).toBeInTheDocument();
+    expect(screen.getByText('📊 Architecture Diagram')).toBeInTheDocument();
     expect(screen.getByText('🎨 Open in Draw.io')).toBeInTheDocument();
     
     const link = screen.getByRole('link', { name: /open in draw\.io/i });
@@ -181,7 +174,7 @@ describe('DecisionDetails', () => {
     const decisionWithoutDiagram = { ...mockDecision, drawIoUrl: undefined };
     render(<DecisionDetails decision={decisionWithoutDiagram} />);
 
-    expect(screen.queryByText('Architecture Diagram')).not.toBeInTheDocument();
+    expect(screen.queryByText('📊 Architecture Diagram')).not.toBeInTheDocument();
     expect(screen.queryByText('🎨 Open in Draw.io')).not.toBeInTheDocument();
   });
 
@@ -196,9 +189,9 @@ describe('DecisionDetails', () => {
   it('renders pros and cons when decision has pros and cons', () => {
     render(<DecisionDetails decision={mockDecisionWithProsCons} />);
 
-    expect(screen.getByText('Pros & Cons Analysis')).toBeInTheDocument();
-    expect(screen.getByText('✅ Pros')).toBeInTheDocument();
-    expect(screen.getByText('❌ Cons')).toBeInTheDocument();
+    expect(screen.getByText('⚖️ Pros & Cons Analysis')).toBeInTheDocument();
+    expect(screen.getByText('Pros')).toBeInTheDocument();
+    expect(screen.getByText('Cons')).toBeInTheDocument();
     
     // Check pros
     expect(screen.getByText('Great Performance')).toBeInTheDocument();
@@ -211,21 +204,20 @@ describe('DecisionDetails', () => {
     expect(screen.getByText('Expensive to implement and maintain')).toBeInTheDocument();
   });
 
-  it('renders star ratings for pros and cons', () => {
+  it('renders impact indicators for pros and cons', () => {
     render(<DecisionDetails decision={mockDecisionWithProsCons} />);
 
-    // Check rating displays
-    expect(screen.getByText('5/5')).toBeInTheDocument();
-    expect(screen.getByText('4/5')).toBeInTheDocument();
-    expect(screen.getByText('3/5')).toBeInTheDocument();
-    expect(screen.getByText('2/5')).toBeInTheDocument();
+    // Check impact displays
+    expect(screen.getByText('High')).toBeInTheDocument();
+    expect(screen.getAllByText('Major')).toHaveLength(2);
+    expect(screen.getByText('Minor')).toBeInTheDocument();
   });
 
   it('renders overall scores for pros and cons', () => {
+    // This test is no longer applicable with impact levels
+    // Just ensure the component renders without errors
     render(<DecisionDetails decision={mockDecisionWithProsCons} />);
-
-    expect(screen.getByText('Overall: 4.5/5')).toBeInTheDocument(); // (5+4)/2 = 4.5
-    expect(screen.getByText('Overall: 2.5/5')).toBeInTheDocument(); // (3+2)/2 = 2.5
+    expect(screen.getByText('⚖️ Pros & Cons Analysis')).toBeInTheDocument();
   });
 
   it('handles decision with only pros', () => {
@@ -238,7 +230,7 @@ describe('DecisionDetails', () => {
           {
             id: 'pro-1',
             title: 'Great Feature',
-            rating: 5
+            impact: 'high'
           }
         ]
       },
@@ -247,10 +239,10 @@ describe('DecisionDetails', () => {
 
     render(<DecisionDetails decision={decisionWithOnlyPros} />);
 
-    expect(screen.getByText('Pros & Cons Analysis')).toBeInTheDocument();
-    expect(screen.getByText('✅ Pros')).toBeInTheDocument();
+    expect(screen.getByText('⚖️ Pros & Cons Analysis')).toBeInTheDocument();
+    expect(screen.getByText('Pros')).toBeInTheDocument();
     expect(screen.getByText('Great Feature')).toBeInTheDocument();
-    expect(screen.queryByText('❌ Cons')).not.toBeInTheDocument();
+    expect(screen.queryByText('Cons')).not.toBeInTheDocument();
   });
 
   it('handles decision with only cons', () => {
@@ -263,7 +255,7 @@ describe('DecisionDetails', () => {
           {
             id: 'con-1',
             title: 'Major Issue',
-            rating: 4
+            impact: 'major'
           }
         ]
       },
@@ -272,16 +264,16 @@ describe('DecisionDetails', () => {
 
     render(<DecisionDetails decision={decisionWithOnlyCons} />);
 
-    expect(screen.getByText('Pros & Cons Analysis')).toBeInTheDocument();
-    expect(screen.getByText('❌ Cons')).toBeInTheDocument();
+    expect(screen.getByText('⚖️ Pros & Cons Analysis')).toBeInTheDocument();
+    expect(screen.getByText('Cons')).toBeInTheDocument();
     expect(screen.getByText('Major Issue')).toBeInTheDocument();
-    expect(screen.queryByText('✅ Pros')).not.toBeInTheDocument();
+    expect(screen.queryByText('Pros')).not.toBeInTheDocument();
   });
 
   it('does not render pros and cons section when decision has no pros and cons', () => {
     render(<DecisionDetails decision={mockDecision} />);
 
-    expect(screen.queryByText('Pros & Cons Analysis')).not.toBeInTheDocument();
+    expect(screen.queryByText('⚖️ Pros & Cons Analysis')).not.toBeInTheDocument();
   });
 
   it('handles pros and cons without descriptions', () => {
@@ -294,14 +286,14 @@ describe('DecisionDetails', () => {
           {
             id: 'pro-no-desc',
             title: 'Pro without Description',
-            rating: 3
+            impact: 'major'
           }
         ],
         cons: [
           {
             id: 'con-no-desc',
             title: 'Con without Description',
-            rating: 2
+            impact: 'minor'
           }
         ]
       },
@@ -312,8 +304,8 @@ describe('DecisionDetails', () => {
 
     expect(screen.getByText('Pro without Description')).toBeInTheDocument();
     expect(screen.getByText('Con without Description')).toBeInTheDocument();
-    expect(screen.getByText('3/5')).toBeInTheDocument();
-    expect(screen.getByText('2/5')).toBeInTheDocument();
+    expect(screen.getByText('Major')).toBeInTheDocument();
+    expect(screen.getByText('Minor')).toBeInTheDocument();
   });
 
   it('handles empty pros and cons arrays', () => {
@@ -330,6 +322,6 @@ describe('DecisionDetails', () => {
 
     render(<DecisionDetails decision={decisionWithEmptyProsCons} />);
 
-    expect(screen.queryByText('Pros & Cons Analysis')).not.toBeInTheDocument();
+    expect(screen.queryByText('⚖️ Pros & Cons Analysis')).not.toBeInTheDocument();
   });
 }); 

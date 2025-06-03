@@ -115,20 +115,20 @@ decisions:
         - id: "pro-1"
           title: "High Performance"
           description: "Significantly improves system performance"
-          rating: 5
+          impact: high
         - id: "pro-2"
           title: "Easy to Maintain"
           description: "Reduces maintenance overhead"
-          rating: 4
+          impact: major
       cons:
         - id: "con-1"
           title: "High Initial Cost"
           description: "Requires significant upfront investment"
-          rating: 3
+          impact: major
         - id: "con-2"
           title: "Learning Curve"
           description: "Team needs time to learn new technology"
-          rating: 2
+          impact: minor
     
   - id: "another-decision"
     title: "Another Decision"
@@ -167,7 +167,7 @@ For each pros/cons item:
 - **`id`** (required): Unique identifier for the pros/cons item
 - **`title`** (required): Human-readable title
 - **`description`** (optional): Detailed description (supports Markdown)
-- **`rating`** (required): Impact rating from 1 (low) to 5 (high)
+- **`impact`** (required): Impact level - one of `minor`, `major`, or `high`
 
 ## Example Use Cases
 
@@ -190,20 +190,20 @@ decisions:
         - id: "centralized-auth"
           title: "Centralized Authentication"
           description: "Single point for authentication management"
-          rating: 5
+          impact: high
         - id: "load-balancing"
           title: "Load Balancing"
           description: "Built-in load balancing capabilities"
-          rating: 4
+          impact: major
       cons:
         - id: "single-point-failure"
           title: "Single Point of Failure"
           description: "Gateway failure affects entire system"
-          rating: 4
+          impact: high
         - id: "added-latency"
           title: "Additional Latency"
           description: "Extra network hop increases response time"
-          rating: 2
+          impact: minor
     
   - id: "service-discovery"
     title: "Service Discovery"

@@ -1,13 +1,7 @@
 import React from 'react';
 import { Handle, Position } from 'reactflow';
 import type { NodeProps } from 'reactflow';
-import type { DecisionPoint } from '../types/architecture';
-
-interface DecisionNodeData {
-  decision: DecisionPoint;
-  isSelected: boolean;
-  onSelect: () => void;
-}
+import type { DecisionNodeData } from '../types/architecture';
 
 export default function DecisionNode({ data }: NodeProps<DecisionNodeData>) {
   const { decision, isSelected, onSelect } = data;
