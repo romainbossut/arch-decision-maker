@@ -191,6 +191,7 @@ function App() {
   const [tree, setTree] = useState<ArchitectureDecisionTree | null>(null);
   const [selectedDecisionId, setSelectedDecisionId] = useState<string>();
   const [errors, setErrors] = useState<string[]>([]);
+  const [isYamlCollapsed, setIsYamlCollapsed] = useState(true);
 
   const parseYaml = useCallback(() => {
     try {
@@ -220,6 +221,10 @@ function App() {
     ? tree.decisions[selectedDecisionId]
     : undefined;
 
+  const toggleYamlSection = () => {
+    setIsYamlCollapsed(!isYamlCollapsed);
+  };
+
   return (
     <div className="app">
       <header className="app-header">
@@ -228,46 +233,75 @@ function App() {
       </header>
 
       <div className="app-content">
-        <div className="left-panel">
-          <YamlEditor
-            value={yamlContent}
-            onChange={setYamlContent}
-            onParse={parseYaml}
-            errors={errors}
-          />
+        <div className={`yaml-section ${isYamlCollapsed ? 'collapsed' : ''}`}>
+          {!isYamlCollapsed && (
+            <YamlEditor
+              value={yamlContent}
+              onChange={setYamlContent}
+              onParse={parseYaml}
+              errors={errors}
+            />
+          )}
 
           {tree && (
             <div className="tree-info">
-              <h3>{tree.name}</h3>
-              {tree.description && <p>{tree.description}</p>}
-              <div className="stats">
-                <span>📊 {Object.keys(tree.decisions).length} decisions</span>
-                <span>🌱 {tree.rootDecisions.length} root decisions</span>
+              <div className="tree-info-content">
+                <h3>{tree.name}</h3>
+                {tree.description && <p>{tree.description}</p>}
+                <div className="stats">
+                  <span>📊 {Object.keys(tree.decisions).length} decisions</span>
+                  <span>🌱 {tree.rootDecisions.length} root decisions</span>
+                </div>
               </div>
+              <button 
+                onClick={toggleYamlSection}
+                className="yaml-toggle-btn"
+              >
+                {isYamlCollapsed ? '📝 Edit YAML' : '🗂️ Collapse'}
+              </button>
             </div>
+          )}
+
+          {!tree && !isYamlCollapsed && (
+            <button 
+              onClick={toggleYamlSection}
+              className="yaml-toggle-btn"
+              style={{ marginTop: '16px' }}
+            >
+              🗂️ Collapse
+            </button>
           )}
         </div>
 
-        <div className="center-panel">
+        <div className="chart-section">
           {tree ? (
-            <div style={{ flex: 1, width: '100%', height: '100%' }}>
-              <DecisionTreeVisualization
-                tree={tree}
-                selectedDecisionId={selectedDecisionId}
-                onDecisionSelect={setSelectedDecisionId}
-              />
-            </div>
+            <DecisionTreeVisualization
+              tree={tree}
+              selectedDecisionId={selectedDecisionId}
+              onDecisionSelect={setSelectedDecisionId}
+            />
           ) : (
             <div className="empty-state">
               <h3>No valid decision tree</h3>
               <p>Please fix the YAML configuration to see the visualization.</p>
+              {isYamlCollapsed && (
+                <button 
+                  onClick={toggleYamlSection}
+                  className="yaml-toggle-btn"
+                  style={{ marginTop: '16px' }}
+                >
+                  📝 Edit YAML
+                </button>
+              )}
             </div>
           )}
         </div>
 
-        <div className="right-panel">
-          <DecisionDetails decision={selectedDecision} />
-        </div>
+        {selectedDecision && (
+          <div className="details-section">
+            <DecisionDetails decision={selectedDecision} />
+          </div>
+        )}
       </div>
     </div>
   );

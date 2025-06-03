@@ -1,15 +1,15 @@
 .decision-details {
   padding: 24px;
-  height: 100%;
-  overflow-y: auto;
-  background: #f9fafb;
-  border-left: 1px solid #e5e7eb;
+  background: #ffffff;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .no-selection {
   text-align: center;
   padding: 48px 24px;
   color: #6b7280;
+  width: 100%;
 }
 
 .no-selection h3 {
@@ -21,6 +21,7 @@
   margin-bottom: 24px;
   padding-bottom: 16px;
   border-bottom: 2px solid #e5e7eb;
+  width: 100%;
 }
 
 .decision-header h2 {
@@ -44,20 +45,19 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  padding-bottom: 24px;
+  width: 100%;
 }
 
 .description-section,
 .dependencies-section,
-.external-dependencies-section,
-.pros-cons-section,
 .diagram-section {
-  margin-bottom: 32px;
+  margin-bottom: 0;
+  width: 100%;
 }
 
 .description-section h3,
 .dependencies-section h3,
-.external-dependencies-section h3,
-.pros-cons-section h3,
 .diagram-section h3 {
   margin: 0 0 12px 0;
   color: #374151;
@@ -66,17 +66,23 @@
 }
 
 .description-content {
-  background: #ffffff;
+  background: #f9fafb;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 16px;
   line-height: 1.6;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .dependencies-list {
   margin: 0;
   padding: 0;
   list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  width: 100%;
 }
 
 .dependency-item {
@@ -84,18 +90,20 @@
   border: 1px solid #e5e7eb;
   border-radius: 6px;
   padding: 8px 12px;
-  margin-bottom: 8px;
   font-family: monospace;
   font-size: 14px;
   color: #374151;
+  flex-shrink: 0;
 }
 
 .diagram-link {
-  background: #ffffff;
+  background: #f9fafb;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 16px;
   text-align: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .diagram-button {
@@ -120,18 +128,67 @@
   font-size: 14px;
 }
 
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .decision-details {
+    padding: 16px;
+  }
+  
+  .decision-header {
+    padding-bottom: 12px;
+  }
+  
+  .decision-header h2 {
+    font-size: 20px;
+  }
+  
+  .decision-content {
+    gap: 16px;
+  }
+  
+  .dependencies-list {
+    flex-direction: column;
+  }
+  
+  .dependency-item {
+    width: 100%;
+  }
+  
+  .pros-cons-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+.external-dependencies-section {
+  margin-bottom: 0;
+  width: 100%;
+}
+
+.external-dependencies-section h3 {
+  margin: 0 0 12px 0;
+  color: #374151;
+  font-size: 18px;
+  font-weight: 600;
+}
+
 .external-dependencies-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
+  width: 100%;
 }
 
 .external-dependency-item {
-  background: #ffffff;
+  background: #f9fafb;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   padding: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .external-dependency-header {
@@ -207,22 +264,22 @@
 }
 
 .pros-cons-section {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  padding: 20px;
+  margin-bottom: 0;
+  width: 100%;
 }
 
-.pros-cons-container {
+.pros-cons-section h3 {
+  margin: 0 0 12px 0;
+  color: #374151;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.pros-cons-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
-}
-
-@media (max-width: 768px) {
-  .pros-cons-container {
-    grid-template-columns: 1fr;
-  }
+  width: 100%;
 }
 
 .pros-section,

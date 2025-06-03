@@ -1,5 +1,7 @@
 * {
   box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
 
 body {
@@ -10,12 +12,17 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: #f8fafc;
+  width: 100vw;
+  overflow-x: hidden;
 }
 
 .app {
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
 }
 
 .app-header {
@@ -23,6 +30,8 @@ body {
   border-bottom: 1px solid #e5e7eb;
   padding: 20px 24px;
   text-align: center;
+  width: 100%;
+  margin: 0;
 }
 
 .app-header h1 {
@@ -40,29 +49,29 @@ body {
 
 .app-content {
   flex: 1;
-  display: grid;
-  grid-template-columns: 350px minmax(500px, 1fr) 350px;
-  height: calc(100vh - 100px);
-  overflow: hidden;
-}
-
-.left-panel {
-  background: #ffffff;
-  border-right: 1px solid #e5e7eb;
-  padding: 16px;
-  overflow-y: auto;
-}
-
-.center-panel {
-  background: #f9fafb;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  width: 100%;
+  margin: 0;
+  padding: 0;
 }
 
-.right-panel {
+.yaml-section {
   background: #ffffff;
-  overflow-y: auto;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 16px 24px;
+  flex-shrink: 0;
+  width: 100%;
+  margin: 0;
+}
+
+.yaml-section.collapsed {
+  padding-bottom: 16px;
+}
+
+.yaml-section .yaml-editor {
+  margin: 0;
+  width: 100%;
 }
 
 .tree-info {
@@ -71,17 +80,28 @@ body {
   border-radius: 8px;
   padding: 16px;
   margin-top: 16px;
+  margin-bottom: 0;
+  margin-left: 0;
+  margin-right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
+.tree-info-content {
+  flex: 1;
 }
 
 .tree-info h3 {
-  margin: 0 0 8px 0;
+  margin: 0 0 4px 0;
   color: #1f2937;
   font-size: 18px;
   font-weight: 600;
 }
 
 .tree-info p {
-  margin: 0 0 12px 0;
+  margin: 0 0 8px 0;
   color: #6b7280;
   font-size: 14px;
   line-height: 1.5;
@@ -100,6 +120,43 @@ body {
   gap: 4px;
 }
 
+.yaml-toggle-btn {
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 14px;
+  color: #374151;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  margin-left: 16px;
+  white-space: nowrap;
+}
+
+.yaml-toggle-btn:hover {
+  background: #e5e7eb;
+  border-color: #9ca3af;
+}
+
+.chart-section {
+  background: #f9fafb;
+  display: flex;
+  flex-direction: column;
+  height: 60vh;
+  min-height: 500px;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+.details-section {
+  background: #ffffff;
+  border-top: 1px solid #e5e7eb;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
 .empty-state {
   flex: 1;
   display: flex;
@@ -109,6 +166,8 @@ body {
   text-align: center;
   padding: 48px 24px;
   color: #6b7280;
+  width: 100%;
+  margin: 0;
 }
 
 .empty-state h3 {
@@ -122,28 +181,32 @@ body {
   font-size: 16px;
 }
 
-/* Responsive design for smaller screens */
-@media (max-width: 1200px) {
-  .app-content {
-    grid-template-columns: 300px minmax(400px, 1fr) 300px;
-  }
-}
-
-@media (max-width: 900px) {
-  .app-content {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto 1fr auto;
-    height: calc(100vh - 100px);
+/* Responsive design */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 16px;
   }
   
-  .left-panel,
-  .right-panel {
-    border-right: none;
-    border-bottom: 1px solid #e5e7eb;
-    max-height: 300px;
+  .yaml-section {
+    padding: 16px;
   }
   
-  .right-panel {
-    border-bottom: none;
+  .tree-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .yaml-toggle-btn {
+    margin-left: 0;
+    align-self: flex-end;
+  }
+  
+  .stats {
+    flex-wrap: wrap;
+  }
+  
+  .chart-section {
+    min-height: 400px;
   }
 }
