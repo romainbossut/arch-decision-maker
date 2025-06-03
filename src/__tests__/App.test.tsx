@@ -50,8 +50,8 @@ describe('App', () => {
       expect(screen.getByText('Microservices Architecture Decision')).toBeInTheDocument();
     });
     
-    expect(screen.getByText(/5 decisions/)).toBeInTheDocument();
-    expect(screen.getByText(/1 root decisions/)).toBeInTheDocument();
+    expect(screen.getByText(/7 decisions/)).toBeInTheDocument();
+    expect(screen.getByText(/3 root decisions/)).toBeInTheDocument();
   });
 
   it('does not render decision details panel when no decision is selected', () => {

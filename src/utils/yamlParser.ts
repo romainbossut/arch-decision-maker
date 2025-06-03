@@ -186,6 +186,87 @@ export function validateDecisionTree(tree: ArchitectureDecisionTree): string[] {
       });
     }
 
+    // Validate status
+    if (decision.status) {
+      const validStatuses = ['proposed', 'accepted', 'rejected', 'deprecated'];
+      if (!validStatuses.includes(decision.status)) {
+        errors.push(`Decision "${decision.id}" has invalid status. Must be one of: proposed, accepted, rejected, deprecated`);
+      }
+    }
+
+    // Validate risk level
+    if (decision.riskLevel) {
+      const validRiskLevels = ['low', 'medium', 'high'];
+      if (!validRiskLevels.includes(decision.riskLevel)) {
+        errors.push(`Decision "${decision.id}" has invalid risk level. Must be one of: low, medium, high`);
+      }
+    }
+
+    // Validate date formats
+    if (decision.decisionDate && !isValidDate(decision.decisionDate)) {
+      errors.push(`Decision "${decision.id}" has invalid decision date format. Use YYYY-MM-DD format.`);
+    }
+    if (decision.lastReviewed && !isValidDate(decision.lastReviewed)) {
+      errors.push(`Decision "${decision.id}" has invalid last reviewed date format. Use YYYY-MM-DD format.`);
+    }
+
+    // Validate supersedes references
+    if (decision.supersedes) {
+      decision.supersedes.forEach((supersededId) => {
+        if (!allDecisionIds.includes(supersededId)) {
+          errors.push(`Decision "${decision.id}" supersedes unknown decision: ${supersededId}`);
+        }
+      });
+    }
+
+    // Validate supersededBy reference
+    if (decision.supersededBy && !allDecisionIds.includes(decision.supersededBy)) {
+      errors.push(`Decision "${decision.id}" is superseded by unknown decision: ${decision.supersededBy}`);
+    }
+
+    // Validate links
+    if (decision.links) {
+      const linkIds = new Set<string>();
+      decision.links.forEach((link) => {
+        if (linkIds.has(link.id)) {
+          errors.push(`Decision "${decision.id}" has duplicate link ID: ${link.id}`);
+        }
+        linkIds.add(link.id);
+
+        // Validate link type
+        if (link.type) {
+          const validLinkTypes = ['rfc', 'ticket', 'confluence', 'github', 'documentation', 'other'];
+          if (!validLinkTypes.includes(link.type)) {
+            errors.push(`Decision "${decision.id}" link "${link.id}" has invalid type. Must be one of: ${validLinkTypes.join(', ')}`);
+          }
+        }
+      });
+    }
+
+    // Validate implementation tasks
+    if (decision.implementationTasks) {
+      const taskIds = new Set<string>();
+      decision.implementationTasks.forEach((task) => {
+        if (taskIds.has(task.id)) {
+          errors.push(`Decision "${decision.id}" has duplicate implementation task ID: ${task.id}`);
+        }
+        taskIds.add(task.id);
+
+        // Validate task status
+        if (task.status) {
+          const validTaskStatuses = ['todo', 'in-progress', 'done', 'blocked'];
+          if (!validTaskStatuses.includes(task.status)) {
+            errors.push(`Decision "${decision.id}" task "${task.id}" has invalid status. Must be one of: todo, in-progress, done, blocked`);
+          }
+        }
+
+        // Validate task due date
+        if (task.dueDate && !isValidDate(task.dueDate)) {
+          errors.push(`Decision "${decision.id}" task "${task.id}" has invalid due date format. Use YYYY-MM-DD format.`);
+        }
+      });
+    }
+
     // Validate external dependencies
     if (decision.externalDependencies) {
       const externalDepIds = new Set<string>();

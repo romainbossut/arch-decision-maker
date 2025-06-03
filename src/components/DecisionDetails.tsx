@@ -113,6 +113,41 @@ export default function DecisionDetails({
     return new Date(dateString) < new Date();
   };
 
+  const renderStatusBadge = (status: string) => {
+    const statusConfig = {
+      proposed: { emoji: '💭', class: 'status-proposed', label: 'Proposed' },
+      accepted: { emoji: '✅', class: 'status-accepted', label: 'Accepted' },
+      rejected: { emoji: '❌', class: 'status-rejected', label: 'Rejected' },
+      deprecated: { emoji: '⚠️', class: 'status-deprecated', label: 'Deprecated' }
+    };
+    
+    const config = statusConfig[status as keyof typeof statusConfig];
+    if (!config) return null;
+    
+    return (
+      <span className={`status-badge ${config.class}`}>
+        {config.emoji} {config.label}
+      </span>
+    );
+  };
+
+  const renderRiskBadge = (riskLevel: string) => {
+    const riskConfig = {
+      low: { emoji: '🟢', class: 'risk-low' },
+      medium: { emoji: '🟡', class: 'risk-medium' },
+      high: { emoji: '🔴', class: 'risk-high' }
+    };
+    
+    const config = riskConfig[riskLevel as keyof typeof riskConfig];
+    if (!config) return null;
+    
+    return (
+      <span className={`risk-badge ${config.class}`}>
+        {config.emoji} {riskLevel.charAt(0).toUpperCase() + riskLevel.slice(1)} Risk
+      </span>
+    );
+  };
+
   const prosOverallScore = decision.prosCons?.pros ? calculateOverallScore(decision.prosCons.pros) : null;
   const consOverallScore = decision.prosCons?.cons ? calculateOverallScore(decision.prosCons.cons) : null;
 
@@ -122,6 +157,8 @@ export default function DecisionDetails({
         <h2>📋 {decision.title}</h2>
         <div className="decision-meta">
           <span className="decision-id">ID: {decision.id}</span>
+          {decision.status && renderStatusBadge(decision.status)}
+          {decision.riskLevel && renderRiskBadge(decision.riskLevel)}
           {decision.selectedPath !== undefined && (
             <span className={`path-status ${decision.selectedPath ? 'selected' : 'rejected'}`}>
               {decision.selectedPath ? '✅ Selected' : '❌ Rejected'}
@@ -137,6 +174,80 @@ export default function DecisionDetails({
             <ReactMarkdown>{decision.description}</ReactMarkdown>
           </div>
         </div>
+
+        {/* Ownership and Timeline */}
+        {(decision.owner || decision.authors || decision.decisionDate || decision.lastReviewed || decision.costEstimate) && (
+          <div className="details-section">
+            <h3>📊 Decision Metadata</h3>
+            <div className="metadata-grid">
+              {decision.owner && (
+                <div className="metadata-item">
+                  <span className="metadata-label">👤 Owner:</span>
+                  <span className="metadata-value">{decision.owner}</span>
+                </div>
+              )}
+              {decision.authors && decision.authors.length > 0 && (
+                <div className="metadata-item">
+                  <span className="metadata-label">✍️ Authors:</span>
+                  <span className="metadata-value">{decision.authors.join(', ')}</span>
+                </div>
+              )}
+              {decision.decisionDate && (
+                <div className="metadata-item">
+                  <span className="metadata-label">📅 Decision Date:</span>
+                  <span className="metadata-value">{decision.decisionDate}</span>
+                </div>
+              )}
+              {decision.lastReviewed && (
+                <div className="metadata-item">
+                  <span className="metadata-label">🔍 Last Reviewed:</span>
+                  <span className="metadata-value">{decision.lastReviewed}</span>
+                </div>
+              )}
+              {decision.costEstimate && (
+                <div className="metadata-item">
+                  <span className="metadata-label">💰 Cost Estimate:</span>
+                  <span className="metadata-value">{decision.costEstimate}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Tags */}
+        {decision.tags && decision.tags.length > 0 && (
+          <div className="details-section">
+            <h3>🏷️ Tags</h3>
+            <div className="tags-container">
+              {decision.tags.map((tag) => (
+                <span key={tag} className="tag">{tag}</span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Supersedes / Superseded By */}
+        {(decision.supersedes && decision.supersedes.length > 0) || decision.supersededBy && (
+          <div className="details-section">
+            <h3>🔄 Decision Evolution</h3>
+            {decision.supersedes && decision.supersedes.length > 0 && (
+              <div className="evolution-item">
+                <span className="evolution-label">⬆️ Supersedes:</span>
+                <div className="evolution-list">
+                  {decision.supersedes.map((supersededId) => (
+                    <span key={supersededId} className="evolution-link">{supersededId}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {decision.supersededBy && (
+              <div className="evolution-item">
+                <span className="evolution-label">⬇️ Superseded By:</span>
+                <span className="evolution-link">{decision.supersededBy}</span>
+              </div>
+            )}
+          </div>
+        )}
 
         {decision.dependencies && decision.dependencies.length > 0 && (
           <div className="details-section">
@@ -169,6 +280,63 @@ export default function DecisionDetails({
                       <ReactMarkdown>{extDep.description}</ReactMarkdown>
                     </div>
                   )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Links */}
+        {decision.links && decision.links.length > 0 && (
+          <div className="details-section">
+            <h3>🔗 Related Links</h3>
+            <div className="links-container">
+              {decision.links.map((link) => (
+                <div key={link.id} className="link-item">
+                  <a href={link.url} target="_blank" rel="noopener noreferrer" className="link">
+                    {link.type && <span className="link-type">{link.type}</span>}
+                    {link.title}
+                    <span className="external-icon">↗</span>
+                  </a>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Implementation Tasks */}
+        {decision.implementationTasks && decision.implementationTasks.length > 0 && (
+          <div className="details-section">
+            <h3>📋 Implementation Tasks</h3>
+            <div className="tasks-container">
+              {decision.implementationTasks.map((task) => (
+                <div key={task.id} className={`task-item ${task.status || 'todo'}`}>
+                  <div className="task-header">
+                    <span className="task-status">
+                      {task.status === 'done' && '✅'}
+                      {task.status === 'in-progress' && '🔄'}
+                      {task.status === 'blocked' && '🚫'}
+                      {(!task.status || task.status === 'todo') && '⏳'}
+                    </span>
+                    {task.url ? (
+                      <a href={task.url} target="_blank" rel="noopener noreferrer" className="task-title">
+                        {task.title} ↗
+                      </a>
+                    ) : (
+                      <span className="task-title">{task.title}</span>
+                    )}
+                  </div>
+                  <div className="task-meta">
+                    {task.assignee && (
+                      <span className="task-assignee">👤 {task.assignee}</span>
+                    )}
+                    {task.dueDate && (
+                      <span className={`task-due-date ${isOverdue(task.dueDate) ? 'overdue' : ''}`}>
+                        📅 {task.dueDate}
+                        {isOverdue(task.dueDate) && ' (Overdue)'}
+                      </span>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

@@ -32,6 +32,36 @@ export interface DecisionPoint {
   externalDependencies?: ExternalDependency[];
   prosCons?: ProsCons;
   selectedPath?: boolean; // true = chosen path (green), false = rejected path (red), undefined = neutral
+  
+  // Auditable and traceable fields
+  status?: 'proposed' | 'accepted' | 'rejected' | 'deprecated';
+  owner?: string;
+  authors?: string[];
+  decisionDate?: string; // ISO date string (YYYY-MM-DD)
+  lastReviewed?: string; // ISO date string (YYYY-MM-DD)
+  supersedes?: string[]; // IDs of decisions this one supersedes
+  supersededBy?: string; // ID of decision that supersedes this one
+  tags?: string[]; // e.g. ['security', 'performance', 'cost']
+  riskLevel?: 'low' | 'medium' | 'high';
+  costEstimate?: string; // e.g. "2-3 weeks", "$50k", "High"
+  links?: Link[];
+  implementationTasks?: ImplementationTask[];
+}
+
+export interface Link {
+  id: string;
+  title: string;
+  url: string;
+  type?: 'rfc' | 'ticket' | 'confluence' | 'github' | 'documentation' | 'other';
+}
+
+export interface ImplementationTask {
+  id: string;
+  title: string;
+  url?: string;
+  status?: 'todo' | 'in-progress' | 'done' | 'blocked';
+  assignee?: string;
+  dueDate?: string; // ISO date string (YYYY-MM-DD)
 }
 
 // Node data types for ReactFlow

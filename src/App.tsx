@@ -24,6 +24,42 @@ decisions:
       - Need for high availability setup
     drawIoUrl: "https://app.diagrams.net/#G1abc123def456"
     selectedPath: true
+    status: accepted
+    owner: "platform-team"
+    authors: ["john.doe", "jane.smith"]
+    decisionDate: "2024-01-15"
+    lastReviewed: "2024-03-01"
+    tags: ["infrastructure", "security", "performance"]
+    riskLevel: medium
+    costEstimate: "4-6 weeks development"
+    links:
+      - id: "rfc-001"
+        title: "API Gateway RFC"
+        url: "https://company.atlassian.net/wiki/spaces/ARCH/pages/123456/API+Gateway+RFC"
+        type: "rfc"
+      - id: "comparison-doc"
+        title: "Gateway Solutions Comparison"
+        url: "https://docs.google.com/document/d/1a2b3c4d5e6f7g8h9"
+        type: "documentation"
+    implementationTasks:
+      - id: "INFRA-123"
+        title: "Set up Kong API Gateway in staging"
+        url: "https://company.atlassian.net/browse/INFRA-123"
+        status: "done"
+        assignee: "john.doe"
+        dueDate: "2024-02-01"
+      - id: "INFRA-124"
+        title: "Configure authentication plugins"
+        url: "https://company.atlassian.net/browse/INFRA-124"
+        status: "in-progress"
+        assignee: "jane.smith"
+        dueDate: "2024-02-15"
+      - id: "INFRA-125"
+        title: "Setup production environment"
+        url: "https://company.atlassian.net/browse/INFRA-125"
+        status: "todo"
+        assignee: "bob.wilson"
+        dueDate: "2024-03-01"
     externalDependencies:
       - id: "security-audit"
         title: "Security Audit Completion"
@@ -72,6 +108,13 @@ decisions:
       - Kubernetes built-in service discovery
     dependencies: ["api-gateway"]
     selectedPath: true
+    status: proposed
+    owner: "platform-team"
+    authors: ["alice.cooper"]
+    decisionDate: "2024-01-20"
+    tags: ["infrastructure", "networking"]
+    riskLevel: low
+    costEstimate: "2-3 weeks development"
     externalDependencies:
       - id: "ops-team-training"
         title: "Operations Team Training"
@@ -112,6 +155,14 @@ decisions:
       - Complex queries spanning multiple services
     dependencies: ["service-discovery"]
     selectedPath: false
+    status: rejected
+    owner: "data-team"
+    authors: ["chris.martinez", "diana.lee"]
+    decisionDate: "2024-01-25"
+    lastReviewed: "2024-02-15"
+    tags: ["data", "architecture", "cost"]
+    riskLevel: high
+    costEstimate: "12-16 weeks migration"
     externalDependencies:
       - id: "dba-approval"
         title: "Database Administrator Approval"
@@ -163,6 +214,14 @@ decisions:
       - Event store management
     dependencies: ["database-per-service"]
     selectedPath: true
+    status: deprecated
+    owner: "data-team"
+    authors: ["emily.clark"]
+    decisionDate: "2024-02-01"
+    lastReviewed: "2024-03-10"
+    tags: ["data", "architecture", "scalability"]
+    riskLevel: high
+    costEstimate: "8-10 weeks implementation"
     externalDependencies:
       - id: "event-store-license"
         title: "Event Store License"
@@ -181,6 +240,39 @@ decisions:
       - Health checks
     dependencies: ["service-discovery"]
     selectedPath: true
+    status: accepted
+    owner: "sre-team"
+    authors: ["frank.brown", "grace.kim"]
+    decisionDate: "2024-02-05"
+    tags: ["monitoring", "observability", "operations"]
+    riskLevel: medium
+    costEstimate: "6-8 weeks setup + ongoing costs"
+    links:
+      - id: "monitoring-rfc"
+        title: "Monitoring Architecture RFC"
+        url: "https://company.atlassian.net/wiki/spaces/SRE/pages/789012/Monitoring+RFC"
+        type: "rfc"
+      - id: "vendor-comparison"
+        title: "Monitoring Vendor Comparison"
+        url: "https://github.com/company/architecture-docs/blob/main/monitoring-comparison.md"
+        type: "github"
+    implementationTasks:
+      - id: "MON-001"
+        title: "Setup Prometheus + Grafana"
+        url: "https://company.atlassian.net/browse/MON-001"
+        status: "done"
+        assignee: "frank.brown"
+      - id: "MON-002"
+        title: "Configure Jaeger for distributed tracing"
+        url: "https://company.atlassian.net/browse/MON-002"
+        status: "in-progress"
+        assignee: "grace.kim"
+        dueDate: "2024-03-15"
+      - id: "MON-003"
+        title: "Setup centralized logging with ELK stack"
+        status: "blocked"
+        assignee: "henry.wilson"
+        dueDate: "2024-03-20"
     externalDependencies:
       - id: "monitoring-tools"
         title: "Monitoring Tools Procurement"
@@ -189,7 +281,23 @@ decisions:
       - id: "compliance-review"
         title: "Compliance Review"
         description: "Legal review of monitoring tools for GDPR and data privacy compliance."
-        expectedResolutionDate: "2024-02-15"`;
+        expectedResolutionDate: "2024-02-15"
+        
+  # Legacy decisions for reference
+  - id: "legacy-dns-discovery"
+    title: "Legacy DNS-based Service Discovery"
+    description: "Old approach using DNS for service discovery"
+    status: deprecated
+    decisionDate: "2023-06-01"
+    supersededBy: "service-discovery"
+    tags: ["legacy", "deprecated"]
+    
+  - id: "shared-database-v2"
+    title: "Shared Database Architecture v2"
+    description: "Updated shared database approach with better isolation"
+    status: proposed
+    supersedes: ["database-per-service"]
+    tags: ["data", "architecture"]`;
 
 function App() {
   const [yamlContent, setYamlContent] = useState(defaultYaml);

@@ -601,4 +601,281 @@
     grid-template-columns: 1fr;
     gap: 16px;
   }
+}
+
+/* Status and Risk Badges */
+.status-badge, .risk-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.status-badge.status-proposed {
+  background: #f3f4f6;
+  color: #374151;
+  border: 1px solid #d1d5db;
+}
+
+.status-badge.status-accepted {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.status-badge.status-rejected {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}
+
+.status-badge.status-deprecated {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+}
+
+.risk-badge.risk-low {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.risk-badge.risk-medium {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #f59e0b;
+}
+
+.risk-badge.risk-high {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}
+
+/* Metadata Grid */
+.metadata-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.metadata-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.metadata-label {
+  font-weight: 600;
+  color: #374151;
+  white-space: nowrap;
+}
+
+.metadata-value {
+  color: #1f2937;
+  flex: 1;
+}
+
+/* Tags */
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.tag {
+  padding: 4px 8px;
+  background: #3b82f6;
+  color: white;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Decision Evolution */
+.evolution-item {
+  margin: 8px 0;
+  padding: 12px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+}
+
+.evolution-label {
+  font-weight: 600;
+  color: #374151;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.evolution-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.evolution-link {
+  padding: 4px 8px;
+  background: #e5e7eb;
+  color: #374151;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+/* Links */
+.links-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.link-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  text-decoration: none;
+  color: #3b82f6;
+  transition: background-color 0.2s ease;
+}
+
+.link:hover {
+  background: #f9fafb;
+}
+
+.link-type {
+  padding: 2px 6px;
+  background: #e5e7eb;
+  color: #374151;
+  border-radius: 4px;
+  font-size: 10px;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.external-icon {
+  margin-left: auto;
+  color: #6b7280;
+}
+
+/* Implementation Tasks */
+.tasks-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.task-item {
+  padding: 12px;
+  border: 1px solid #e5e7eb;
+  border-radius: 6px;
+  background: #ffffff;
+}
+
+.task-item.done {
+  background: #f0fdf4;
+  border-color: #22c55e;
+}
+
+.task-item.in-progress {
+  background: #fefce8;
+  border-color: #eab308;
+}
+
+.task-item.blocked {
+  background: #fef2f2;
+  border-color: #ef4444;
+}
+
+.task-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.task-status {
+  font-size: 14px;
+}
+
+.task-title {
+  flex: 1;
+  font-weight: 600;
+  color: #1f2937;
+  text-decoration: none;
+}
+
+.task-title:hover {
+  color: #3b82f6;
+}
+
+.task-meta {
+  display: flex;
+  gap: 12px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.task-assignee {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.task-due-date {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.task-due-date.overdue {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+/* Responsive adjustments for new elements */
+@media (max-width: 768px) {
+  .metadata-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .decision-meta {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .status-badge, .risk-badge {
+    font-size: 11px;
+  }
+  
+  .evolution-list {
+    flex-direction: column;
+  }
+  
+  .links-container {
+    gap: 6px;
+  }
+  
+  .link {
+    padding: 10px;
+  }
 } 

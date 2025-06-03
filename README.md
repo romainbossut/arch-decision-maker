@@ -101,67 +101,122 @@ decisions:
       - Links
     drawIoUrl: "https://app.diagrams.net/#G<your-diagram-id>"
     dependencies: ["other-decision-id"]
+    selectedPath: true  # true = green, false = red, undefined = neutral
+    
+    # Auditable and traceable fields
+    status: "accepted"  # proposed, accepted, rejected, deprecated
+    owner: "platform-team"
+    authors: ["john.doe", "jane.smith"]
+    decisionDate: "2024-01-15"
+    lastReviewed: "2024-03-01"
+    supersedes: ["legacy-decision-id"]
+    supersededBy: "newer-decision-id"
+    tags: ["security", "performance", "cost"]
+    riskLevel: "medium"  # low, medium, high
+    costEstimate: "4-6 weeks development"
+    
+    # Related links
+    links:
+      - id: "rfc-001"
+        title: "Architecture RFC"
+        url: "https://company.atlassian.net/wiki/spaces/ARCH/pages/123456/RFC"
+        type: "rfc"  # rfc, ticket, confluence, github, documentation, other
+      - id: "comparison-doc"
+        title: "Solution Comparison"
+        url: "https://docs.google.com/document/d/1a2b3c4d5e6f7g8h9"
+        type: "documentation"
+        
+    # Implementation tracking
+    implementationTasks:
+      - id: "PROJ-123"
+        title: "Set up infrastructure"
+        url: "https://company.atlassian.net/browse/PROJ-123"
+        status: "done"  # todo, in-progress, done, blocked
+        assignee: "john.doe"
+        dueDate: "2024-02-01"
+      - id: "PROJ-124"
+        title: "Configure security"
+        url: "https://github.com/company/project/issues/124"
+        status: "in-progress"
+        assignee: "jane.smith"
+        dueDate: "2024-02-15"
+        
     externalDependencies:
-      - id: "external-dep-1"
-        title: "Security Audit"
-        description: "Security review must be completed before implementation"
+      - id: "security-audit"
+        title: "Security Audit Completion"
+        description: "Complete security audit before production deployment"
         expectedResolutionDate: "2024-03-15"
-      - id: "external-dep-2"
-        title: "Budget Approval"
-        description: "Finance approval for additional infrastructure costs"
-        expectedResolutionDate: "2024-02-28"
+        
     prosCons:
       pros:
         - id: "pro-1"
           title: "High Performance"
           description: "Significantly improves system performance"
-          impact: high
+          impact: high  # minor, major, high
         - id: "pro-2"
           title: "Easy to Maintain"
-          description: "Reduces maintenance overhead"
           impact: major
       cons:
         - id: "con-1"
           title: "High Initial Cost"
           description: "Requires significant upfront investment"
           impact: major
-        - id: "con-2"
-          title: "Learning Curve"
-          description: "Team needs time to learn new technology"
-          impact: minor
-    
-  - id: "another-decision"
-    title: "Another Decision"
-    description: "This decision depends on the first one"
-    dependencies: ["unique-decision-id"]
-    selectedPath: true
 ```
 
 ### Field Descriptions
 
+#### Core Fields
 - **`name`** (required): The name of your architecture decision tree
 - **`description`** (optional): A description of what this decision tree represents
 - **`decisions`** (required): Array of decision points
 
-For each decision:
+#### Decision Fields
 - **`id`** (required): Unique identifier for the decision
 - **`title`** (required): Human-readable title
 - **`description`** (required): Detailed description (supports Markdown)
 - **`drawIoUrl`** (optional): Link to a Draw.io diagram
 - **`dependencies`** (optional): Array of decision IDs that this decision depends on
 - **`selectedPath`** (optional): Boolean indicating if this path is chosen (true = green, false = red, undefined = neutral)
+
+#### Auditable and Traceable Fields
+- **`status`** (optional): Current state - `proposed`, `accepted`, `rejected`, or `deprecated`
+- **`owner`** (optional): Who is accountable for shepherding or revisiting the decision
+- **`authors`** (optional): Array of people who contributed to the decision
+- **`decisionDate`** (optional): When the decision was made (YYYY-MM-DD format)
+- **`lastReviewed`** (optional): When the decision was last reviewed (YYYY-MM-DD format)
+- **`supersedes`** (optional): Array of decision IDs that this decision replaces
+- **`supersededBy`** (optional): Decision ID that replaces this decision
+- **`tags`** (optional): Array of tags for categorization (e.g., `security`, `performance`, `cost`)
+- **`riskLevel`** (optional): Risk assessment - `low`, `medium`, or `high`
+- **`costEstimate`** (optional): Free-form cost estimation (e.g., "2-3 weeks", "$50k", "High")
+
+#### Links and Documentation
+- **`links`** (optional): Array of related links
+  - **`id`** (required): Unique identifier for the link
+  - **`title`** (required): Human-readable title
+  - **`url`** (required): The URL
+  - **`type`** (optional): Type of link - `rfc`, `ticket`, `confluence`, `github`, `documentation`, or `other`
+
+#### Implementation Tracking
+- **`implementationTasks`** (optional): Array of implementation tasks
+  - **`id`** (required): Unique identifier (e.g., JIRA ticket ID)
+  - **`title`** (required): Task description
+  - **`url`** (optional): Link to the task (JIRA, GitHub issue, etc.)
+  - **`status`** (optional): Current status - `todo`, `in-progress`, `done`, or `blocked`
+  - **`assignee`** (optional): Who is responsible for the task
+  - **`dueDate`** (optional): Due date (YYYY-MM-DD format)
+
+#### External Dependencies
 - **`externalDependencies`** (optional): Array of external dependencies
+  - **`id`** (required): Unique identifier for the external dependency
+  - **`title`** (required): Human-readable title of the dependency
+  - **`description`** (optional): Detailed description (supports Markdown)
+  - **`expectedResolutionDate`** (optional): Expected resolution date in YYYY-MM-DD format
+
+#### Pros and Cons Analysis
 - **`prosCons`** (optional): Pros and cons analysis for the decision
-
-For each external dependency:
-- **`id`** (required): Unique identifier for the external dependency
-- **`title`** (required): Human-readable title of the dependency
-- **`description`** (optional): Detailed description (supports Markdown)
-- **`expectedResolutionDate`** (optional): Expected resolution date in YYYY-MM-DD format
-
-For pros and cons:
-- **`pros`** (optional): Array of positive aspects
-- **`cons`** (optional): Array of negative aspects
+  - **`pros`** (optional): Array of positive aspects
+  - **`cons`** (optional): Array of negative aspects
 
 For each pros/cons item:
 - **`id`** (required): Unique identifier for the pros/cons item
