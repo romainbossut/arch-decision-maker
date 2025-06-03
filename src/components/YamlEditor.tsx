@@ -4,16 +4,27 @@ import './YamlEditor.css';
 interface YamlEditorProps {
   value: string;
   onChange: (value: string) => void;
-  onParse: () => void;
   errors?: string[];
+  isParsing?: boolean;
+  isValid?: boolean;
 }
 
-export default function YamlEditor({ value, onChange, onParse, errors }: YamlEditorProps) {
+export default function YamlEditor({ value, onChange, errors, isParsing, isValid }: YamlEditorProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onChange(e.target.value);
   }, [onChange]);
+
+  const getStatusIndicator = () => {
+    if (isParsing) {
+      return <span className="auto-update-indicator parsing">🔄 Parsing...</span>;
+    } else if (isValid) {
+      return <span className="auto-update-indicator valid">✅ Valid</span>;
+    } else {
+      return <span className="auto-update-indicator invalid">❌ Invalid</span>;
+    }
+  };
 
   return (
     <div className="yaml-editor">
@@ -26,9 +37,7 @@ export default function YamlEditor({ value, onChange, onParse, errors }: YamlEdi
           >
             {isExpanded ? 'Collapse' : 'Expand'}
           </button>
-          <button onClick={onParse} className="parse-button">
-            Update Tree
-          </button>
+          {getStatusIndicator()}
         </div>
       </div>
 

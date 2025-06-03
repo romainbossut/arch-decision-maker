@@ -191,6 +191,89 @@ decisions:
         rating: 2
       });
     });
+
+    it('should handle selectedPath propagation correctly', () => {
+      const yamlContent = `
+name: "Path Selection Test"
+decisions:
+  - id: "root"
+    title: "Root Decision"
+    description: "Root decision"
+    selectedPath: true
+  - id: "selected-child"
+    title: "Selected Child"
+    description: "This should be selected"
+    dependencies: ["root"]
+    selectedPath: true
+  - id: "grandchild"
+    title: "Grandchild"
+    description: "This should inherit parent's selection"
+    dependencies: ["selected-child"]
+      `;
+
+      const result = parseYamlContent(yamlContent);
+
+      expect(result.decisions['root'].selectedPath).toBe(true);
+      expect(result.decisions['selected-child'].selectedPath).toBe(true);
+      expect(result.decisions['grandchild'].selectedPath).toBe(true); // Should inherit from selected parent
+    });
+
+    it('should handle explicit rejection propagation', () => {
+      const yamlContent = `
+name: "Rejection Test"
+decisions:
+  - id: "root"
+    title: "Root Decision"
+    description: "Root decision"
+  - id: "rejected-branch"
+    title: "Rejected Branch"
+    description: "This branch is rejected"
+    dependencies: ["root"]
+    selectedPath: false
+  - id: "rejected-child"
+    title: "Rejected Child"
+    description: "This should also be rejected"
+    dependencies: ["rejected-branch"]
+      `;
+
+      const result = parseYamlContent(yamlContent);
+
+      expect(result.decisions['root'].selectedPath).toBeUndefined();
+      expect(result.decisions['rejected-branch'].selectedPath).toBe(false);
+      expect(result.decisions['rejected-child'].selectedPath).toBe(false); // Should inherit rejection
+    });
+
+    it('should force all children to be rejected when parent is rejected', () => {
+      const yamlContent = `
+name: "Parent Rejection Test"
+decisions:
+  - id: "root"
+    title: "Root Decision"
+    description: "Root decision"
+    selectedPath: false
+  - id: "child-selected"
+    title: "Child Explicitly Selected"
+    description: "This child is explicitly selected but should be rejected due to parent"
+    dependencies: ["root"]
+    selectedPath: true
+  - id: "child-neutral"
+    title: "Child Neutral"
+    description: "This child has no explicit setting"
+    dependencies: ["root"]
+  - id: "grandchild"
+    title: "Grandchild"
+    description: "This should also be rejected"
+    dependencies: ["child-selected"]
+    selectedPath: true
+      `;
+
+      const result = parseYamlContent(yamlContent);
+
+      expect(result.decisions['root'].selectedPath).toBe(false);
+      expect(result.decisions['child-selected'].selectedPath).toBe(false); // Should be forced to false
+      expect(result.decisions['child-neutral'].selectedPath).toBe(false); // Should be rejected
+      expect(result.decisions['grandchild'].selectedPath).toBe(false); // Should be forced to false
+    });
   });
 
   describe('validateDecisionTree', () => {

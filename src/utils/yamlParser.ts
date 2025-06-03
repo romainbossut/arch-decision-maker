@@ -32,6 +32,9 @@ function transformToDecisionTree(yamlTree: YamlDecisionTree): ArchitectureDecisi
     }
   });
 
+  // Third pass: propagate path selection logic
+  propagatePathSelection(decisions);
+
   // Find root decisions (those with no dependencies)
   const rootDecisions = yamlTree.decisions
     .filter((decision) => !decision.dependencies || decision.dependencies.length === 0)
@@ -43,6 +46,89 @@ function transformToDecisionTree(yamlTree: YamlDecisionTree): ArchitectureDecisi
     decisions,
     rootDecisions,
   };
+}
+
+function propagatePathSelection(decisions: Record<string, DecisionPoint>) {
+  const visited = new Set<string>();
+  
+  // Helper function to mark a decision and its descendants as rejected
+  function markAsRejected(decisionId: string, force: boolean = false) {
+    if (visited.has(decisionId) && !force) return;
+    visited.add(decisionId);
+    
+    const decision = decisions[decisionId];
+    if (decision) {
+      // Force rejection if parent is rejected, otherwise only if undefined
+      if (force || decision.selectedPath === undefined) {
+        decision.selectedPath = false; // Mark as rejected
+      }
+    }
+    
+    // Recursively mark all children as rejected (forced)
+    if (decision && decision.children) {
+      decision.children.forEach(childId => markAsRejected(childId, true));
+    }
+  }
+  
+  // Helper function to mark a decision and its descendants as selected if they're not explicitly set
+  function markAsSelected(decisionId: string, force: boolean = false) {
+    if (visited.has(decisionId)) return;
+    visited.add(decisionId);
+    
+    const decision = decisions[decisionId];
+    if (decision && (decision.selectedPath === undefined || force)) {
+      decision.selectedPath = true; // Mark as selected
+    }
+    
+    // Recursively mark children that should be selected
+    if (decision.children) {
+      decision.children.forEach(childId => {
+        const child = decisions[childId];
+        if (child) {
+          // If the child is explicitly selected or has no explicit setting, mark it as selected
+          if (child.selectedPath === true || child.selectedPath === undefined) {
+            markAsSelected(childId);
+          }
+        }
+      });
+    }
+  }
+  
+  // First pass: Handle explicitly rejected decisions (this should override everything downstream)
+  Object.values(decisions).forEach(decision => {
+    if (decision.selectedPath === false) {
+      visited.clear();
+      markAsRejected(decision.id, true); // Force rejection of this decision and all children
+    }
+  });
+  
+  // Second pass: Handle explicitly selected decisions
+  Object.values(decisions).forEach(decision => {
+    if (decision.selectedPath === true) {
+      visited.clear();
+      markAsSelected(decision.id, true);
+    }
+  });
+  
+  // Third pass: Handle sibling conflicts - if one sibling is selected, others should be rejected
+  Object.values(decisions).forEach(decision => {
+    if (decision.children && decision.children.length > 1) {
+      const selectedChildren = decision.children.filter(childId => 
+        decisions[childId]?.selectedPath === true
+      );
+      
+      // If at least one child is selected, mark the others as rejected
+      if (selectedChildren.length > 0) {
+        decision.children.forEach(childId => {
+          const child = decisions[childId];
+          if (child && child.selectedPath === undefined) {
+            visited.clear();
+            markAsRejected(childId);
+          }
+        });
+      }
+    }
+  });
 }
 
 function isValidDate(dateString: string): boolean {
@@ -157,4 +243,4 @@ export function validateDecisionTree(tree: ArchitectureDecisionTree): string[] {
   });
 
   return errors;
-} 
+}

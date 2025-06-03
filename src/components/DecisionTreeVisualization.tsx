@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useEffect } from 'react';
 import ReactFlow, {
   addEdge,
   useNodesState,
@@ -28,7 +28,7 @@ export default function DecisionTreeVisualization({
   onDecisionSelect,
 }: DecisionTreeVisualizationProps) {
   // Convert decision tree to ReactFlow nodes and edges
-  const { nodes: initialNodes, edges: initialEdges } = useMemo(() => {
+  const { nodes: calculatedNodes, edges: calculatedEdges } = useMemo(() => {
     const nodes: Node[] = [];
     const edges: Edge[] = [];
 
@@ -83,13 +83,30 @@ export default function DecisionTreeVisualization({
     Object.values(tree.decisions).forEach(decision => {
       if (decision.children) {
         decision.children.forEach(childId => {
+          const child = tree.decisions[childId];
+          
+          // Determine edge color based on path selection
+          let edgeColor = '#64748b'; // Default gray
+          let edgeWidth = 2;
+          
+          if (decision.selectedPath === true && child.selectedPath === true) {
+            edgeColor = '#10b981'; // Green for selected path
+            edgeWidth = 3;
+          } else if (decision.selectedPath === false || child.selectedPath === false) {
+            edgeColor = '#ef4444'; // Red for rejected path
+            edgeWidth = 2;
+          }
+
           edges.push({
             id: `${decision.id}-${childId}`,
             source: decision.id,
             target: childId,
             type: 'smoothstep',
-            animated: false,
-            style: { stroke: '#64748b' },
+            animated: decision.selectedPath === true && child.selectedPath === true,
+            style: { 
+              stroke: edgeColor,
+              strokeWidth: edgeWidth,
+            },
           });
         });
       }
@@ -98,8 +115,14 @@ export default function DecisionTreeVisualization({
     return { nodes, edges };
   }, [tree, selectedDecisionId, onDecisionSelect]);
 
-  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  const [nodes, setNodes, onNodesChange] = useNodesState([]);
+  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+
+  // Update nodes and edges when tree changes
+  useEffect(() => {
+    setNodes(calculatedNodes);
+    setEdges(calculatedEdges);
+  }, [calculatedNodes, calculatedEdges, setNodes, setEdges]);
 
   const onConnect = useCallback(
     (params: Edge | Connection) => setEdges((eds) => addEdge(params, eds)),

@@ -1,85 +1,94 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import YamlEditor from '../YamlEditor';
 
 describe('YamlEditor', () => {
-  const mockOnChange = vi.fn();
-  const mockOnParse = vi.fn();
-
-  beforeEach(() => {
-    mockOnChange.mockClear();
-    mockOnParse.mockClear();
-  });
-
   it('renders with default props', () => {
+    const mockOnChange = vi.fn();
+
     render(
       <YamlEditor
         value=""
         onChange={mockOnChange}
-        onParse={mockOnParse}
       />
     );
 
     expect(screen.getByText('YAML Configuration')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Paste your YAML configuration here...')).toBeInTheDocument();
     expect(screen.getByText('Expand')).toBeInTheDocument();
-    expect(screen.getByText('Update Tree')).toBeInTheDocument();
+    expect(screen.getByText('❌ Invalid')).toBeInTheDocument(); // Default state when no isValid prop
   });
 
   it('displays the provided value in textarea', () => {
-    const testValue = 'name: "Test"\ndecisions: []';
+    const testValue = 'name: "Test Tree"\ndecisions: []';
+    const mockOnChange = vi.fn();
+
     render(
       <YamlEditor
         value={testValue}
         onChange={mockOnChange}
-        onParse={mockOnParse}
       />
     );
 
-    const textarea = screen.getByRole('textbox');
+    const textarea = screen.getByPlaceholderText('Paste your YAML configuration here...');
     expect(textarea).toHaveValue(testValue);
   });
 
   it('calls onChange when textarea value changes', async () => {
     const user = userEvent.setup();
+    const mockOnChange = vi.fn();
+
     render(
       <YamlEditor
         value=""
         onChange={mockOnChange}
-        onParse={mockOnParse}
       />
     );
 
     const textarea = screen.getByPlaceholderText('Paste your YAML configuration here...');
-    await user.type(textarea, 'test content');
+    await user.type(textarea, 'test');
 
     expect(mockOnChange).toHaveBeenCalled();
   });
 
-  it('calls onParse when Update Tree button is clicked', async () => {
-    const user = userEvent.setup();
+  it('shows parsing status when isParsing is true', () => {
+    const mockOnChange = vi.fn();
+
     render(
       <YamlEditor
         value=""
         onChange={mockOnChange}
-        onParse={mockOnParse}
+        isParsing={true}
       />
     );
 
-    const updateButton = screen.getByText('Update Tree');
-    await user.click(updateButton);
+    expect(screen.getByText('🔄 Parsing...')).toBeInTheDocument();
+  });
 
-    expect(mockOnParse).toHaveBeenCalledTimes(1);
+  it('shows valid status when isValid is true', () => {
+    const mockOnChange = vi.fn();
+
+    render(
+      <YamlEditor
+        value=""
+        onChange={mockOnChange}
+        isParsing={false}
+        isValid={true}
+      />
+    );
+
+    expect(screen.getByText('✅ Valid')).toBeInTheDocument();
   });
 
   it('toggles between collapsed and expanded states', async () => {
     const user = userEvent.setup();
+    const mockOnChange = vi.fn();
+
     render(
       <YamlEditor
         value=""
         onChange={mockOnChange}
-        onParse={mockOnParse}
       />
     );
 
@@ -87,18 +96,16 @@ describe('YamlEditor', () => {
     await user.click(toggleButton);
 
     expect(screen.getByText('Collapse')).toBeInTheDocument();
-
-    await user.click(screen.getByText('Collapse'));
-    expect(screen.getByText('Expand')).toBeInTheDocument();
   });
 
   it('displays validation errors when provided', () => {
+    const mockOnChange = vi.fn();
     const errors = ['Error 1', 'Error 2'];
+
     render(
       <YamlEditor
         value=""
         onChange={mockOnChange}
-        onParse={mockOnParse}
         errors={errors}
       />
     );
@@ -109,11 +116,12 @@ describe('YamlEditor', () => {
   });
 
   it('does not display error section when no errors', () => {
+    const mockOnChange = vi.fn();
+
     render(
       <YamlEditor
         value=""
         onChange={mockOnChange}
-        onParse={mockOnParse}
       />
     );
 

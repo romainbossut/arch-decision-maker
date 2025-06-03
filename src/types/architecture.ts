@@ -30,6 +30,7 @@ export interface DecisionPoint {
     x: number;
     y: number;
   };
+  selectedPath?: boolean; // true = chosen path (green), false = rejected path (red), undefined = neutral
 }
 
 export interface ArchitectureDecisionTree {
@@ -53,4 +54,5 @@ export interface YamlDecisionPoint {
   dependencies?: string[];
   externalDependencies?: ExternalDependency[];
   prosCons?: ProsCons;
+  selectedPath?: boolean;
 } 

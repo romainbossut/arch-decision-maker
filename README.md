@@ -14,6 +14,7 @@ A React 19 + Vite tool for visualizing architecture decisions from YAML files. T
 - **✅ Validation**: Built-in validation for decision tree consistency
 - **⚠️ Overdue Tracking**: Visual indicators for overdue external dependencies
 - **⭐ Rating System**: Star-based rating system for pros and cons analysis
+- **🎯 Path Selection**: Mark decision paths as selected (green) or rejected (red) for clear visualization
 
 ## Getting Started
 
@@ -133,6 +134,7 @@ decisions:
     title: "Another Decision"
     description: "This decision depends on the first one"
     dependencies: ["unique-decision-id"]
+    selectedPath: true
 ```
 
 ### Field Descriptions
@@ -147,6 +149,7 @@ For each decision:
 - **`description`** (required): Detailed description (supports Markdown)
 - **`drawIoUrl`** (optional): Link to a Draw.io diagram
 - **`dependencies`** (optional): Array of decision IDs that this decision depends on
+- **`selectedPath`** (optional): Boolean indicating if this path is chosen (true = green, false = red, undefined = neutral)
 - **`externalDependencies`** (optional): Array of external dependencies
 - **`prosCons`** (optional): Pros and cons analysis for the decision
 
@@ -176,6 +179,7 @@ decisions:
   - id: "api-gateway"
     title: "Implement API Gateway"
     description: "Central entry point for all client requests"
+    selectedPath: true
     externalDependencies:
       - id: "security-audit"
         title: "Security Audit"
@@ -205,6 +209,7 @@ decisions:
     title: "Service Discovery"
     description: "Dynamic service registration and lookup"
     dependencies: ["api-gateway"]
+    selectedPath: true
     externalDependencies:
       - id: "ops-training"
         title: "Operations Training"
@@ -226,6 +231,7 @@ decisions:
     title: "Separate Databases"
     description: "Move to database-per-service pattern"
     dependencies: ["service-discovery"]
+    selectedPath: false
     externalDependencies:
       - id: "dba-approval"
         title: "DBA Approval"

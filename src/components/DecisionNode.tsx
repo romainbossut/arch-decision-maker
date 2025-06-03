@@ -12,29 +12,104 @@ interface DecisionNodeData {
 export default function DecisionNode({ data }: NodeProps<DecisionNodeData>) {
   const { decision, isSelected, onSelect } = data;
 
+  // Determine node styling based on selection state
+  const getNodeStyling = () => {
+    const baseStyle = {
+      borderRadius: '8px',
+      padding: '12px 16px',
+      minWidth: '200px',
+      maxWidth: '250px',
+      cursor: 'pointer',
+      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+      transition: 'all 0.2s ease-in-out',
+      border: '2px solid',
+    };
+
+    if (isSelected) {
+      // Currently selected node (darker styling for visibility)
+      if (decision.selectedPath === true) {
+        return {
+          ...baseStyle,
+          background: '#059669', // Dark green
+          color: '#ffffff',
+          borderColor: '#047857',
+        };
+      } else if (decision.selectedPath === false) {
+        return {
+          ...baseStyle,
+          background: '#dc2626', // Dark red
+          color: '#ffffff',
+          borderColor: '#b91c1c',
+        };
+      } else {
+        return {
+          ...baseStyle,
+          background: '#3b82f6', // Blue for selected neutral
+          color: '#ffffff',
+          borderColor: '#2563eb',
+        };
+      }
+    } else {
+      // Non-selected nodes
+      if (decision.selectedPath === true) {
+        return {
+          ...baseStyle,
+          background: '#d1fae5', // Light green
+          color: '#065f46',
+          borderColor: '#10b981',
+        };
+      } else if (decision.selectedPath === false) {
+        return {
+          ...baseStyle,
+          background: '#fee2e2', // Light red
+          color: '#7f1d1d',
+          borderColor: '#ef4444',
+        };
+      } else {
+        return {
+          ...baseStyle,
+          background: '#ffffff', // Default white
+          color: '#1f2937',
+          borderColor: '#e5e7eb',
+        };
+      }
+    }
+  };
+
+  const getHandleColor = () => {
+    if (decision.selectedPath === true) {
+      return '#10b981'; // Green
+    } else if (decision.selectedPath === false) {
+      return '#ef4444'; // Red
+    } else {
+      return '#6b7280'; // Gray
+    }
+  };
+
+  const getPathIndicator = () => {
+    if (decision.selectedPath === true) {
+      return '✅ ';
+    } else if (decision.selectedPath === false) {
+      return '❌ ';
+    } else {
+      return '';
+    }
+  };
+
   return (
     <div
-      className={`decision-node ${isSelected ? 'selected' : ''}`}
+      className={`decision-node ${isSelected ? 'selected' : ''} ${
+        decision.selectedPath === true ? 'selected-path' : 
+        decision.selectedPath === false ? 'rejected-path' : 'neutral-path'
+      }`}
       onClick={onSelect}
-      style={{
-        background: isSelected ? '#3b82f6' : '#ffffff',
-        color: isSelected ? '#ffffff' : '#1f2937',
-        border: '2px solid #e5e7eb',
-        borderColor: isSelected ? '#3b82f6' : '#e5e7eb',
-        borderRadius: '8px',
-        padding: '12px 16px',
-        minWidth: '200px',
-        maxWidth: '250px',
-        cursor: 'pointer',
-        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
-        transition: 'all 0.2s ease-in-out',
-      }}
+      style={getNodeStyling()}
     >
       <Handle
         type="target"
         position={Position.Top}
         style={{
-          background: '#6b7280',
+          background: getHandleColor(),
           width: '8px',
           height: '8px',
         }}
@@ -49,7 +124,7 @@ export default function DecisionNode({ data }: NodeProps<DecisionNodeData>) {
             lineHeight: '1.2',
           }}
         >
-          {decision.title}
+          {getPathIndicator()}{decision.title}
         </h3>
         
         {decision.dependencies && decision.dependencies.length > 0 && (
@@ -84,7 +159,7 @@ export default function DecisionNode({ data }: NodeProps<DecisionNodeData>) {
         type="source"
         position={Position.Bottom}
         style={{
-          background: '#6b7280',
+          background: getHandleColor(),
           width: '8px',
           height: '8px',
         }}

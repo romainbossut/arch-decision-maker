@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import YamlEditor from './components/YamlEditor';
 import DecisionTreeVisualization from './components/DecisionTreeVisualization';
 import DecisionDetails from './components/DecisionDetails';
@@ -23,6 +23,7 @@ decisions:
       - Additional complexity and potential single point of failure
       - Need for high availability setup
     drawIoUrl: "https://app.diagrams.net/#G1abc123def456"
+    selectedPath: true
     externalDependencies:
       - id: "security-audit"
         title: "Security Audit Completion"
@@ -70,6 +71,7 @@ decisions:
       - Eureka
       - Kubernetes built-in service discovery
     dependencies: ["api-gateway"]
+    selectedPath: true
     externalDependencies:
       - id: "ops-team-training"
         title: "Operations Team Training"
@@ -109,6 +111,7 @@ decisions:
       - Data consistency across services
       - Complex queries spanning multiple services
     dependencies: ["service-discovery"]
+    selectedPath: false
     externalDependencies:
       - id: "dba-approval"
         title: "Database Administrator Approval"
@@ -159,6 +162,7 @@ decisions:
       - Learning curve
       - Event store management
     dependencies: ["database-per-service"]
+    selectedPath: true
     externalDependencies:
       - id: "event-store-license"
         title: "Event Store License"
@@ -176,6 +180,7 @@ decisions:
       - Metrics collection
       - Health checks
     dependencies: ["service-discovery"]
+    selectedPath: true
     externalDependencies:
       - id: "monitoring-tools"
         title: "Monitoring Tools Procurement"
@@ -192,30 +197,34 @@ function App() {
   const [selectedDecisionId, setSelectedDecisionId] = useState<string>();
   const [errors, setErrors] = useState<string[]>([]);
   const [isYamlCollapsed, setIsYamlCollapsed] = useState(true);
+  const [isParsing, setIsParsing] = useState(false);
 
-  const parseYaml = useCallback(() => {
-    try {
-      const parsedTree = parseYamlContent(yamlContent);
-      const validationErrors = validateDecisionTree(parsedTree);
-      
-      if (validationErrors.length === 0) {
-        setTree(parsedTree);
-        setErrors([]);
-        setSelectedDecisionId(undefined);
-      } else {
-        setErrors(validationErrors);
+  // Auto-parse YAML with debounce when content changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      setIsParsing(true);
+      try {
+        const parsedTree = parseYamlContent(yamlContent);
+        const validationErrors = validateDecisionTree(parsedTree);
+        
+        if (validationErrors.length === 0) {
+          setTree(parsedTree);
+          setErrors([]);
+          setSelectedDecisionId(undefined);
+        } else {
+          setErrors(validationErrors);
+          setTree(null);
+        }
+      } catch (error) {
+        setErrors([error instanceof Error ? error.message : 'Unknown parsing error']);
         setTree(null);
+      } finally {
+        setIsParsing(false);
       }
-    } catch (error) {
-      setErrors([error instanceof Error ? error.message : 'Unknown parsing error']);
-      setTree(null);
-    }
-  }, [yamlContent]);
+    }, 300); // 300ms debounce
 
-  // Parse initial YAML on component mount
-  React.useEffect(() => {
-    parseYaml();
-  }, [parseYaml]);
+    return () => clearTimeout(timeoutId);
+  }, [yamlContent]); // Direct dependency on yamlContent
 
   const selectedDecision = tree && selectedDecisionId 
     ? tree.decisions[selectedDecisionId]
@@ -238,8 +247,9 @@ function App() {
             <YamlEditor
               value={yamlContent}
               onChange={setYamlContent}
-              onParse={parseYaml}
               errors={errors}
+              isParsing={isParsing}
+              isValid={tree !== null && errors.length === 0}
             />
           )}
 
