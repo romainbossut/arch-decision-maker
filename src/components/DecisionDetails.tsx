@@ -159,11 +159,6 @@ export default function DecisionDetails({
           <span className="decision-id">ID: {decision.id}</span>
           {decision.status && renderStatusBadge(decision.status)}
           {decision.riskLevel && renderRiskBadge(decision.riskLevel)}
-          {decision.selectedPath !== undefined && (
-            <span className={`path-status ${decision.selectedPath ? 'selected' : 'rejected'}`}>
-              {decision.selectedPath ? '✅ Selected' : '❌ Rejected'}
-            </span>
-          )}
         </div>
       </div>
 
@@ -180,18 +175,21 @@ export default function DecisionDetails({
           <div className="details-section">
             <h3>📊 Decision Metadata</h3>
             <div className="metadata-grid">
-              {decision.owner && (
-                <div className="metadata-item">
-                  <span className="metadata-label">👤 Owner:</span>
-                  <span className="metadata-value">{decision.owner}</span>
-                </div>
-              )}
-              {decision.authors && decision.authors.length > 0 && (
-                <div className="metadata-item">
-                  <span className="metadata-label">✍️ Authors:</span>
-                  <span className="metadata-value">{decision.authors.join(', ')}</span>
-                </div>
-              )}
+              <div className="metadata-section">
+                <h4>Ownership</h4>
+                {decision.owner && (
+                  <div className="metadata-item">
+                    <span className="metadata-label">Owner:</span>
+                    <span className="metadata-value">{decision.owner}</span>
+                  </div>
+                )}
+                {decision.authors && decision.authors.length > 0 && (
+                  <div className="metadata-item">
+                    <span className="metadata-label">Authors:</span>
+                    <span className="metadata-value">{decision.authors.join(', ')}</span>
+                  </div>
+                )}
+              </div>
               {decision.decisionDate && (
                 <div className="metadata-item">
                   <span className="metadata-label">📅 Decision Date:</span>

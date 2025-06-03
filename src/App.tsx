@@ -6,301 +6,142 @@ import { parseYamlContent, validateDecisionTree } from './utils/yamlParser';
 import type { ArchitectureDecisionTree } from './types/architecture';
 import './App.css';
 
-const defaultYaml = `name: "Microservices Architecture Decision"
-description: "Decisions for implementing a microservices architecture"
+const DEFAULT_YAML = `name: "API Architecture Decision Tree"
+description: "Decisions for our new API architecture"
+
 decisions:
   - id: "api-gateway"
     title: "API Gateway"
-    description: |
-      Implement an API Gateway to serve as a single entry point for all client requests.
-      
-      **Benefits:**
-      - Centralized authentication and authorization
-      - Request routing and load balancing
-      - API versioning and rate limiting
-      
-      **Considerations:**
-      - Additional complexity and potential single point of failure
-      - Need for high availability setup
-    drawIoUrl: "https://app.diagrams.net/#G1abc123def456"
-    selectedPath: true
-    status: accepted
-    owner: "platform-team"
-    authors: ["john.doe", "jane.smith"]
+    description: "Central entry point for all API requests with routing, authentication, and rate limiting capabilities."
+    status: "accepted"
+    owner: "john.doe@company.com"
+    authors: ["john.doe@company.com", "jane.smith@company.com"]
     decisionDate: "2024-01-15"
-    lastReviewed: "2024-03-01"
-    tags: ["infrastructure", "security", "performance"]
-    riskLevel: medium
-    costEstimate: "4-6 weeks development"
-    links:
-      - id: "rfc-001"
-        title: "API Gateway RFC"
-        url: "https://company.atlassian.net/wiki/spaces/ARCH/pages/123456/API+Gateway+RFC"
-        type: "rfc"
-      - id: "comparison-doc"
-        title: "Gateway Solutions Comparison"
-        url: "https://docs.google.com/document/d/1a2b3c4d5e6f7g8h9"
-        type: "documentation"
-    implementationTasks:
-      - id: "INFRA-123"
-        title: "Set up Kong API Gateway in staging"
-        url: "https://company.atlassian.net/browse/INFRA-123"
-        status: "done"
-        assignee: "john.doe"
-        dueDate: "2024-02-01"
-      - id: "INFRA-124"
-        title: "Configure authentication plugins"
-        url: "https://company.atlassian.net/browse/INFRA-124"
-        status: "in-progress"
-        assignee: "jane.smith"
-        dueDate: "2024-02-15"
-      - id: "INFRA-125"
-        title: "Setup production environment"
-        url: "https://company.atlassian.net/browse/INFRA-125"
-        status: "todo"
-        assignee: "bob.wilson"
-        dueDate: "2024-03-01"
-    externalDependencies:
-      - id: "security-audit"
-        title: "Security Audit Completion"
-        description: "Complete security audit of the API Gateway implementation before production deployment."
-        expectedResolutionDate: "2024-03-15"
-      - id: "load-testing"
-        title: "Load Testing Results"
-        description: "Performance testing results to validate gateway can handle expected traffic load."
-        expectedResolutionDate: "2024-02-28"
+    riskLevel: "medium"
+    tags: ["infrastructure", "security"]
+    costEstimate: "2-3 weeks development"
+    drawIoUrl: "https://app.diagrams.net/#G1abc123def456ghi789jkl"
     prosCons:
       pros:
         - id: "centralized-auth"
           title: "Centralized Authentication"
-          description: "Single point for managing authentication and authorization across all services."
-          impact: high
-        - id: "request-routing"
-          title: "Intelligent Request Routing"
-          description: "Advanced routing capabilities with load balancing and traffic management."
-          impact: major
-        - id: "api-versioning"
-          title: "API Versioning Support"
-          description: "Built-in support for API versioning and backward compatibility."
-          impact: major
+          description: "Single point for authentication and authorization logic"
+          impact: "major"
+        - id: "rate-limiting"
+          title: "Built-in Rate Limiting"
+          description: "Protects backend services from abuse"
+          impact: "high"
       cons:
         - id: "single-point-failure"
           title: "Single Point of Failure"
-          description: "Gateway becomes a critical bottleneck that could impact entire system availability."
-          impact: high
-        - id: "added-complexity"
-          title: "Operational Complexity"
-          description: "Additional infrastructure component that requires monitoring and maintenance."
-          impact: major
-        - id: "latency-overhead"
-          title: "Additional Latency"
-          description: "Extra network hop introduces latency to all requests."
-          impact: minor
-    
+          description: "Gateway outage affects all services"
+          impact: "high"
+        - id: "additional-latency"
+          title: "Additional Network Hop"
+          description: "Introduces extra latency in request chain"
+          impact: "minor"
+    links:
+      - id: "gateway-rfc"
+        title: "API Gateway RFC"
+        url: "https://company.atlassian.net/wiki/spaces/ARCH/pages/123456"
+        type: "rfc"
+      - id: "security-review"
+        title: "Security Review Ticket"
+        url: "https://company.atlassian.net/browse/SEC-789"
+        type: "ticket"
+    implementationTasks:
+      - id: "setup-gateway"
+        title: "Set up Kong API Gateway"
+        status: "done"
+        assignee: "john.doe@company.com"
+        dueDate: "2024-02-01"
+      - id: "auth-integration"
+        title: "Integrate with OAuth2 provider"
+        status: "in-progress"
+        assignee: "jane.smith@company.com"
+        dueDate: "2024-02-15"
+
   - id: "service-discovery"
     title: "Service Discovery"
-    description: |
-      Implement service discovery mechanism for dynamic service registration and lookup.
-      
-      **Options:**
-      - Consul
-      - Eureka
-      - Kubernetes built-in service discovery
+    description: "Mechanism for services to find and communicate with each other in a dynamic environment."
+    status: "accepted"
     dependencies: ["api-gateway"]
-    selectedPath: true
-    status: proposed
-    owner: "platform-team"
-    authors: ["alice.cooper"]
-    decisionDate: "2024-01-20"
+    riskLevel: "low"
     tags: ["infrastructure", "networking"]
-    riskLevel: low
-    costEstimate: "2-3 weeks development"
     externalDependencies:
-      - id: "ops-team-training"
-        title: "Operations Team Training"
-        description: "Ops team needs training on service discovery tools and troubleshooting."
-        expectedResolutionDate: "2024-02-20"
+      - id: "consul-cluster"
+        title: "Consul Cluster Setup"
+        description: "HashiCorp Consul cluster for service discovery"
+        expectedResolutionDate: "2024-03-01"
     prosCons:
       pros:
-        - id: "dynamic-registration"
-          title: "Dynamic Service Registration"
-          description: "Services can automatically register and deregister themselves."
-          impact: high
-        - id: "health-checking"
-          title: "Health Checking"
-          description: "Built-in health checking removes unhealthy instances from load balancing."
-          impact: major
+        - id: "dynamic-scaling"
+          title: "Dynamic Service Scaling"
+          description: "Services can scale up/down without manual configuration"
+          impact: "major"
       cons:
-        - id: "network-partitions"
-          title: "Network Partition Handling"
-          description: "Complex behavior during network partitions and split-brain scenarios."
-          impact: major
-        - id: "additional-dependency"
-          title: "Additional Infrastructure Dependency"
-          description: "Another piece of infrastructure that needs to be highly available."
-          impact: major
-    
+        - id: "complexity"
+          title: "Added Complexity"
+          description: "Requires additional infrastructure management"
+          impact: "minor"
+
   - id: "database-per-service"
     title: "Database per Service"
-    description: |
-      Each microservice owns its data and database schema.
-      
-      **Benefits:**
-      - Data isolation and service autonomy
-      - Technology diversity
-      - Improved fault isolation
-      
-      **Challenges:**
-      - Data consistency across services
-      - Complex queries spanning multiple services
+    description: "Each microservice maintains its own database to ensure loose coupling and independent scaling."
+    status: "rejected"
     dependencies: ["service-discovery"]
-    selectedPath: false
-    status: rejected
-    owner: "data-team"
-    authors: ["chris.martinez", "diana.lee"]
-    decisionDate: "2024-01-25"
-    lastReviewed: "2024-02-15"
-    tags: ["data", "architecture", "cost"]
-    riskLevel: high
-    costEstimate: "12-16 weeks migration"
-    externalDependencies:
-      - id: "dba-approval"
-        title: "Database Administrator Approval"
-        description: "DBA team approval for multiple database instances and backup strategies."
-        expectedResolutionDate: "2024-01-15"
-      - id: "data-migration-plan"
-        title: "Data Migration Strategy"
-        description: "Detailed plan for migrating existing monolithic database to service-specific databases."
+    riskLevel: "high"
+    tags: ["data", "architecture"]
     prosCons:
       pros:
         - id: "data-isolation"
-          title: "Complete Data Isolation"
-          description: "Each service has full control over its data schema and storage technology."
-          impact: high
-        - id: "independent-scaling"
-          title: "Independent Scaling"
-          description: "Database scaling can be tailored to each service's specific needs."
-          impact: major
-        - id: "fault-isolation"
-          title: "Fault Isolation"
-          description: "Database issues in one service don't affect others."
-          impact: major
+          title: "Data Isolation"
+          description: "Services cannot directly access other services' data"
+          impact: "major"
       cons:
         - id: "data-consistency"
           title: "Data Consistency Challenges"
-          description: "Implementing transactions across multiple databases is complex."
-          impact: high
+          description: "Distributed transactions become complex"
+          impact: "high"
         - id: "operational-overhead"
-          title: "Increased Operational Overhead"
-          description: "More databases to monitor, backup, and maintain."
-          impact: major
-        - id: "complex-queries"
-          title: "Cross-Service Queries"
-          description: "Queries spanning multiple services become much more complex."
-          impact: major
-    
-  - id: "event-sourcing"
-    title: "Event Sourcing"
-    description: |
-      Implement event sourcing for maintaining service state and ensuring data consistency.
-      
-      **Benefits:**
-      - Complete audit trail
-      - Temporal queries
-      - Scalability
-      
-      **Complexity:**
-      - Learning curve
-      - Event store management
-    dependencies: ["database-per-service"]
-    selectedPath: true
-    status: deprecated
-    owner: "data-team"
-    authors: ["emily.clark"]
-    decisionDate: "2024-02-01"
-    lastReviewed: "2024-03-10"
-    tags: ["data", "architecture", "scalability"]
-    riskLevel: high
-    costEstimate: "8-10 weeks implementation"
-    externalDependencies:
-      - id: "event-store-license"
-        title: "Event Store License"
-        description: "Purchase enterprise license for Event Store database."
-        expectedResolutionDate: "2024-04-01"
-    
+          title: "Operational Overhead"
+          description: "More databases to manage and monitor"
+          impact: "major"
+
   - id: "monitoring"
     title: "Distributed Monitoring"
-    description: |
-      Implement comprehensive monitoring and observability across all services.
-      
-      **Components:**
-      - Centralized logging
-      - Distributed tracing
-      - Metrics collection
-      - Health checks
+    description: "Comprehensive monitoring solution for distributed services with metrics, logs, and tracing."
+    status: "accepted"
     dependencies: ["service-discovery"]
-    selectedPath: true
-    status: accepted
-    owner: "sre-team"
-    authors: ["frank.brown", "grace.kim"]
-    decisionDate: "2024-02-05"
-    tags: ["monitoring", "observability", "operations"]
-    riskLevel: medium
-    costEstimate: "6-8 weeks setup + ongoing costs"
-    links:
-      - id: "monitoring-rfc"
-        title: "Monitoring Architecture RFC"
-        url: "https://company.atlassian.net/wiki/spaces/SRE/pages/789012/Monitoring+RFC"
-        type: "rfc"
-      - id: "vendor-comparison"
-        title: "Monitoring Vendor Comparison"
-        url: "https://github.com/company/architecture-docs/blob/main/monitoring-comparison.md"
-        type: "github"
-    implementationTasks:
-      - id: "MON-001"
-        title: "Setup Prometheus + Grafana"
-        url: "https://company.atlassian.net/browse/MON-001"
-        status: "done"
-        assignee: "frank.brown"
-      - id: "MON-002"
-        title: "Configure Jaeger for distributed tracing"
-        url: "https://company.atlassian.net/browse/MON-002"
-        status: "in-progress"
-        assignee: "grace.kim"
-        dueDate: "2024-03-15"
-      - id: "MON-003"
-        title: "Setup centralized logging with ELK stack"
-        status: "blocked"
-        assignee: "henry.wilson"
-        dueDate: "2024-03-20"
+    riskLevel: "medium"
+    tags: ["monitoring", "observability"]
     externalDependencies:
-      - id: "monitoring-tools"
-        title: "Monitoring Tools Procurement"
-        description: "Procurement approval for monitoring and observability tools (Datadog, New Relic, etc.)."
-        expectedResolutionDate: "2024-03-01"
-      - id: "compliance-review"
-        title: "Compliance Review"
-        description: "Legal review of monitoring tools for GDPR and data privacy compliance."
-        expectedResolutionDate: "2024-02-15"
-        
-  # Legacy decisions for reference
-  - id: "legacy-dns-discovery"
-    title: "Legacy DNS-based Service Discovery"
-    description: "Old approach using DNS for service discovery"
-    status: deprecated
-    decisionDate: "2023-06-01"
-    supersededBy: "service-discovery"
-    tags: ["legacy", "deprecated"]
-    
+      - id: "datadog-setup"
+        title: "DataDog Integration"
+        description: "Set up DataDog for metrics and alerting"
+        expectedResolutionDate: "2024-02-20"
+      - id: "elk-stack"
+        title: "ELK Stack Deployment"
+        description: "Deploy Elasticsearch, Logstash, and Kibana"
+        expectedResolutionDate: "2024-02-25"
+
+  - id: "event-sourcing"
+    title: "Event Sourcing"
+    description: "Store all changes as a sequence of events rather than just current state."
+    status: "deprecated"
+    dependencies: ["monitoring"]
+    riskLevel: "high"
+    tags: ["data", "architecture"]
+
   - id: "shared-database-v2"
-    title: "Shared Database Architecture v2"
-    description: "Updated shared database approach with better isolation"
-    status: proposed
-    supersedes: ["database-per-service"]
-    tags: ["data", "architecture"]`;
+    title: "Shared Database v2"
+    description: "Updated shared database approach with better partitioning and access controls."
+    status: "proposed"
+    tags: ["data", "architecture"]
+    supersedes: ["database-per-service"]`;
 
 function App() {
-  const [yamlContent, setYamlContent] = useState(defaultYaml);
+  const [yamlContent, setYamlContent] = useState(DEFAULT_YAML);
   const [tree, setTree] = useState<ArchitectureDecisionTree | null>(null);
   const [selectedDecisionId, setSelectedDecisionId] = useState<string>();
   const [errors, setErrors] = useState<string[]>([]);
@@ -311,19 +152,30 @@ function App() {
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setIsParsing(true);
+      console.log('🔍 Starting YAML parsing...');
       try {
         const parsedTree = parseYamlContent(yamlContent);
+        console.log('✅ YAML parsed successfully:', parsedTree.name);
+        console.log('📊 Number of decisions:', Object.keys(parsedTree.decisions).length);
+        
         const validationErrors = validateDecisionTree(parsedTree);
+        console.log('🔎 Validation completed, errors:', validationErrors.length);
         
         if (validationErrors.length === 0) {
+          console.log('✅ No validation errors, setting tree');
           setTree(parsedTree);
           setErrors([]);
           setSelectedDecisionId(undefined);
         } else {
+          console.log('❌ Validation errors found:', validationErrors);
+          validationErrors.forEach((error, index) => {
+            console.log(`   ${index + 1}. ${error}`);
+          });
           setErrors(validationErrors);
           setTree(null);
         }
       } catch (error) {
+        console.error('❌ YAML parsing failed:', error);
         setErrors([error instanceof Error ? error.message : 'Unknown parsing error']);
         setTree(null);
       } finally {

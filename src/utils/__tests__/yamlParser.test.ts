@@ -5,25 +5,27 @@ describe('yamlParser', () => {
   describe('parseYamlContent', () => {
     it('should parse valid YAML content', () => {
       const yamlContent = `
-name: "Test Tree"
-description: "A test decision tree"
+name: "Test Decision Tree"
+description: "A test tree"
 decisions:
   - id: "decision-1"
     title: "First Decision"
     description: "This is the first decision"
   - id: "decision-2"
     title: "Second Decision"
-    description: "This depends on the first"
+    description: "This is the second decision"
     dependencies: ["decision-1"]
       `;
 
       const result = parseYamlContent(yamlContent);
 
-      expect(result.name).toBe('Test Tree');
-      expect(result.description).toBe('A test decision tree');
+      expect(result.name).toBe('Test Decision Tree');
+      expect(result.description).toBe('A test tree');
       expect(Object.keys(result.decisions)).toHaveLength(2);
-      expect(result.rootDecisions).toEqual(['decision-1']);
+      expect(result.decisions['decision-1'].title).toBe('First Decision');
+      expect(result.decisions['decision-2'].dependencies).toEqual(['decision-1']);
       expect(result.decisions['decision-1'].children).toEqual(['decision-2']);
+      expect(result.rootDecisions).toEqual(['decision-1']);
     });
 
     it('should parse YAML content with external dependencies', () => {
@@ -31,35 +33,31 @@ decisions:
 name: "Test Tree with External Dependencies"
 decisions:
   - id: "decision-1"
-    title: "First Decision"
-    description: "This decision has external dependencies"
+    title: "Decision with External Deps"
+    description: "A decision with external dependencies"
     externalDependencies:
       - id: "ext-dep-1"
-        title: "Security Audit"
-        description: "Security review required"
+        title: "External Dependency 1"
+        description: "First external dependency"
         expectedResolutionDate: "2024-03-15"
-      - id: "ext-dep-2" 
-        title: "Budget Approval"
-        description: "Finance approval needed"
-        expectedResolutionDate: "2024-02-28"
+      - id: "ext-dep-2"
+        title: "External Dependency 2"
+        expectedResolutionDate: "2024-04-01"
       `;
 
       const result = parseYamlContent(yamlContent);
 
-      expect(result.name).toBe('Test Tree with External Dependencies');
-      expect(Object.keys(result.decisions)).toHaveLength(1);
       expect(result.decisions['decision-1'].externalDependencies).toHaveLength(2);
       expect(result.decisions['decision-1'].externalDependencies![0]).toEqual({
         id: 'ext-dep-1',
-        title: 'Security Audit',
-        description: 'Security review required',
+        title: 'External Dependency 1',
+        description: 'First external dependency',
         expectedResolutionDate: '2024-03-15'
       });
       expect(result.decisions['decision-1'].externalDependencies![1]).toEqual({
         id: 'ext-dep-2',
-        title: 'Budget Approval',
-        description: 'Finance approval needed',
-        expectedResolutionDate: '2024-02-28'
+        title: 'External Dependency 2',
+        expectedResolutionDate: '2024-04-01'
       });
     });
 
@@ -68,11 +66,11 @@ decisions:
 name: "Minimal External Dependencies"
 decisions:
   - id: "decision-1"
-    title: "First Decision"
-    description: "This decision has minimal external dependencies"
+    title: "Decision"
+    description: "A decision"
     externalDependencies:
       - id: "ext-dep-1"
-        title: "Simple External Dependency"
+        title: "Minimal External Dependency"
       `;
 
       const result = parseYamlContent(yamlContent);
@@ -80,56 +78,58 @@ decisions:
       expect(result.decisions['decision-1'].externalDependencies).toHaveLength(1);
       expect(result.decisions['decision-1'].externalDependencies![0]).toEqual({
         id: 'ext-dep-1',
-        title: 'Simple External Dependency'
+        title: 'Minimal External Dependency'
       });
     });
 
     it('should handle decisions without dependencies', () => {
       const yamlContent = `
-name: "Simple Tree"
+name: "Single Decision Tree"
 decisions:
-  - id: "single-decision"
-    title: "Only Decision"
-    description: "A standalone decision"
+  - id: "standalone"
+    title: "Standalone Decision"
+    description: "A decision with no dependencies"
       `;
 
       const result = parseYamlContent(yamlContent);
 
-      expect(result.rootDecisions).toEqual(['single-decision']);
-      expect(result.decisions['single-decision'].children).toEqual([]);
+      expect(result.rootDecisions).toEqual(['standalone']);
+      expect(result.decisions['standalone'].dependencies).toBeUndefined();
+      expect(result.decisions['standalone'].children).toEqual([]);
     });
 
     it('should throw error for invalid YAML', () => {
       const invalidYaml = `
-name: "Invalid
+name: "Invalid YAML"
 decisions:
-  - id: unclosed-quote
+  - id: "test"
+    title: "Test"
+    description: "Test decision
       `;
 
-      expect(() => parseYamlContent(invalidYaml)).toThrow();
+      expect(() => parseYamlContent(invalidYaml)).toThrow('Failed to parse YAML');
     });
 
     it('should handle multiple root decisions', () => {
       const yamlContent = `
-name: "Multi-root Tree"
+name: "Multi-root Test"
 decisions:
-  - id: "root-1"
+  - id: "root1"
     title: "First Root"
     description: "First root decision"
-  - id: "root-2"
+  - id: "root2"
     title: "Second Root"
     description: "Second root decision"
-  - id: "child-1"
-    title: "Child of First"
-    description: "Depends on first root"
-    dependencies: ["root-1"]
+  - id: "child"
+    title: "Child"
+    description: "Child decision"
+    dependencies: ["root1"]
       `;
 
       const result = parseYamlContent(yamlContent);
-
-      expect(result.rootDecisions).toHaveLength(2);
-      expect(result.rootDecisions).toContain('root-1');
-      expect(result.rootDecisions).toContain('root-2');
+      expect(result.rootDecisions).toEqual(['root1', 'root2']);
+      expect(result.decisions['child'].dependencies).toEqual(['root1']);
+      expect(result.decisions['root1'].children).toEqual(['child']);
     });
 
     it('should parse YAML content with pros and cons', () => {
@@ -137,8 +137,8 @@ decisions:
 name: "Test Tree with Pros and Cons"
 decisions:
   - id: "decision-1"
-    title: "First Decision"
-    description: "This decision has pros and cons"
+    title: "Decision with Pros and Cons"
+    description: "A decision with pros and cons"
     prosCons:
       pros:
         - id: "pro-1"
@@ -160,8 +160,6 @@ decisions:
 
       const result = parseYamlContent(yamlContent);
 
-      expect(result.name).toBe('Test Tree with Pros and Cons');
-      expect(Object.keys(result.decisions)).toHaveLength(1);
       expect(result.decisions['decision-1'].prosCons?.pros).toHaveLength(2);
       expect(result.decisions['decision-1'].prosCons?.cons).toHaveLength(2);
       
@@ -190,89 +188,6 @@ decisions:
         title: 'Learning Curve',
         impact: 'minor'
       });
-    });
-
-    it('should handle selectedPath propagation correctly', () => {
-      const yamlContent = `
-name: "Path Selection Test"
-decisions:
-  - id: "root"
-    title: "Root Decision"
-    description: "Root decision"
-    selectedPath: true
-  - id: "selected-child"
-    title: "Selected Child"
-    description: "This should be selected"
-    dependencies: ["root"]
-    selectedPath: true
-  - id: "grandchild"
-    title: "Grandchild"
-    description: "This should inherit parent's selection"
-    dependencies: ["selected-child"]
-      `;
-
-      const result = parseYamlContent(yamlContent);
-
-      expect(result.decisions['root'].selectedPath).toBe(true);
-      expect(result.decisions['selected-child'].selectedPath).toBe(true);
-      expect(result.decisions['grandchild'].selectedPath).toBe(true); // Should inherit from selected parent
-    });
-
-    it('should handle explicit rejection propagation', () => {
-      const yamlContent = `
-name: "Rejection Test"
-decisions:
-  - id: "root"
-    title: "Root Decision"
-    description: "Root decision"
-  - id: "rejected-branch"
-    title: "Rejected Branch"
-    description: "This branch is rejected"
-    dependencies: ["root"]
-    selectedPath: false
-  - id: "rejected-child"
-    title: "Rejected Child"
-    description: "This should also be rejected"
-    dependencies: ["rejected-branch"]
-      `;
-
-      const result = parseYamlContent(yamlContent);
-
-      expect(result.decisions['root'].selectedPath).toBeUndefined();
-      expect(result.decisions['rejected-branch'].selectedPath).toBe(false);
-      expect(result.decisions['rejected-child'].selectedPath).toBe(false); // Should inherit rejection
-    });
-
-    it('should force all children to be rejected when parent is rejected', () => {
-      const yamlContent = `
-name: "Parent Rejection Test"
-decisions:
-  - id: "root"
-    title: "Root Decision"
-    description: "Root decision"
-    selectedPath: false
-  - id: "child-selected"
-    title: "Child Explicitly Selected"
-    description: "This child is explicitly selected but should be rejected due to parent"
-    dependencies: ["root"]
-    selectedPath: true
-  - id: "child-neutral"
-    title: "Child Neutral"
-    description: "This child has no explicit setting"
-    dependencies: ["root"]
-  - id: "grandchild"
-    title: "Grandchild"
-    description: "This should also be rejected"
-    dependencies: ["child-selected"]
-    selectedPath: true
-      `;
-
-      const result = parseYamlContent(yamlContent);
-
-      expect(result.decisions['root'].selectedPath).toBe(false);
-      expect(result.decisions['child-selected'].selectedPath).toBe(false); // Should be forced to false
-      expect(result.decisions['child-neutral'].selectedPath).toBe(false); // Should be rejected
-      expect(result.decisions['grandchild'].selectedPath).toBe(false); // Should be forced to false
     });
   });
 
@@ -565,12 +480,12 @@ decisions:
                 {
                   id: 'pro-invalid-low',
                   title: 'Pro with Invalid Low Impact',
-                  impact: 'low' as any // Invalid impact level
+                  impact: 'low' as any
                 },
                 {
                   id: 'pro-invalid-high',
                   title: 'Pro with Invalid Super Impact',
-                  impact: 'super' as any // Invalid impact level
+                  impact: 'super' as any
                 },
                 {
                   id: 'pro-valid',
@@ -582,7 +497,7 @@ decisions:
                 {
                   id: 'con-invalid-critical',
                   title: 'Con with Invalid Critical Impact',
-                  impact: 'critical' as any // Invalid impact level
+                  impact: 'critical' as any
                 },
                 {
                   id: 'con-valid',

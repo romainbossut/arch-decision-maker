@@ -154,10 +154,10 @@ export default function DecisionTreeVisualization({
       if (decision.dependencies) {
         decision.dependencies.forEach(depId => {
           if (tree.decisions[depId]) {
-            const edgeStyle = decision.selectedPath === false ? {
+            const edgeStyle = decision.status === 'rejected' ? {
               strokeDasharray: '5,5',
               stroke: '#ef4444',
-            } : decision.selectedPath === true ? {
+            } : decision.status === 'accepted' ? {
               stroke: '#10b981',
               strokeWidth: 2,
             } : {};
@@ -168,7 +168,7 @@ export default function DecisionTreeVisualization({
               target: decision.id,
               type: 'smoothstep',
               style: edgeStyle,
-              animated: decision.selectedPath === true,
+              animated: decision.status === 'accepted',
             });
           }
         });
@@ -193,11 +193,11 @@ export default function DecisionTreeVisualization({
         <div className="legend">
           <div className="legend-item">
             <div className="legend-color selected"></div>
-            <span>Selected Path</span>
+            <span>Accepted Decision</span>
           </div>
           <div className="legend-item">
             <div className="legend-color rejected"></div>
-            <span>Rejected Path</span>
+            <span>Rejected Decision</span>
           </div>
           <div className="legend-item">
             <div className="legend-color external"></div>

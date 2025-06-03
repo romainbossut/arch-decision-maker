@@ -33,7 +33,7 @@
   border-width: 3px;
 }
 
-/* Path-based styling */
+/* Status-based styling */
 .decision-node.selected-path {
   background: #f0fdf4;
   border-color: #10b981;

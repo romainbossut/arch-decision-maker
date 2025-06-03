@@ -21,8 +21,8 @@ export default function DecisionNode({ data }: DecisionNodeProps) {
   };
 
   const getPathClass = () => {
-    if (decision.selectedPath === true) return 'selected-path';
-    if (decision.selectedPath === false) return 'rejected-path';
+    if (decision.status === 'accepted') return 'selected-path';
+    if (decision.status === 'rejected') return 'rejected-path';
     return '';
   };
 
@@ -68,12 +68,6 @@ export default function DecisionNode({ data }: DecisionNodeProps) {
       
       <div className="decision-id">ID: {decision.id}</div>
       
-      {decision.selectedPath !== undefined && (
-        <div className="path-indicator">
-          {decision.selectedPath ? '✅ Selected' : '❌ Rejected'}
-        </div>
-      )}
-
       {(decision.riskLevel || decision.tags) && (
         <div className="decision-meta">
           {decision.riskLevel && (
