@@ -7,9 +7,10 @@ interface YamlEditorProps {
   errors?: string[];
   isParsing?: boolean;
   isValid?: boolean;
+  resetToDefault?: () => void;
 }
 
-export default function YamlEditor({ value, onChange, errors, isParsing, isValid }: YamlEditorProps) {
+export default function YamlEditor({ value, onChange, errors, isParsing, isValid, resetToDefault }: YamlEditorProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -26,6 +27,12 @@ export default function YamlEditor({ value, onChange, errors, isParsing, isValid
     }
   };
 
+  const handleReset = () => {
+    if (resetToDefault && window.confirm('Are you sure you want to reset to the default YAML? This will overwrite your current configuration.')) {
+      resetToDefault();
+    }
+  };
+
   return (
     <div className="yaml-editor">
       <div className="editor-header">
@@ -37,6 +44,15 @@ export default function YamlEditor({ value, onChange, errors, isParsing, isValid
           >
             {isExpanded ? 'Collapse' : 'Expand'}
           </button>
+          {resetToDefault && (
+            <button
+              onClick={handleReset}
+              className="reset-button"
+              title="Reset to default example"
+            >
+              🔄 Reset to Default
+            </button>
+          )}
           {getStatusIndicator()}
         </div>
       </div>

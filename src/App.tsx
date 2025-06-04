@@ -140,13 +140,40 @@ decisions:
     tags: ["data", "architecture"]
     supersedes: ["database-per-service"]`;
 
+const STORAGE_KEY = 'arch-decision-maker-yaml';
+
+// Function to load YAML from localStorage or return default
+function loadYamlFromStorage(): string {
+  try {
+    const storedYaml = localStorage.getItem(STORAGE_KEY);
+    return storedYaml || DEFAULT_YAML;
+  } catch (error) {
+    console.warn('Failed to load YAML from localStorage:', error);
+    return DEFAULT_YAML;
+  }
+}
+
+// Function to save YAML to localStorage
+function saveYamlToStorage(yamlContent: string): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, yamlContent);
+  } catch (error) {
+    console.warn('Failed to save YAML to localStorage:', error);
+  }
+}
+
 function App() {
-  const [yamlContent, setYamlContent] = useState(DEFAULT_YAML);
+  const [yamlContent, setYamlContent] = useState(() => loadYamlFromStorage());
   const [tree, setTree] = useState<ArchitectureDecisionTree | null>(null);
   const [selectedDecisionId, setSelectedDecisionId] = useState<string>();
   const [errors, setErrors] = useState<string[]>([]);
   const [isYamlCollapsed, setIsYamlCollapsed] = useState(true);
   const [isParsing, setIsParsing] = useState(false);
+
+  // Save YAML to localStorage whenever it changes
+  useEffect(() => {
+    saveYamlToStorage(yamlContent);
+  }, [yamlContent]);
 
   // Auto-parse YAML with debounce when content changes
   useEffect(() => {
@@ -222,11 +249,18 @@ function App() {
     setIsYamlCollapsed(!isYamlCollapsed);
   };
 
+  const resetToDefault = () => {
+    setYamlContent(DEFAULT_YAML);
+  };
+
   return (
     <div className="app">
       <header className="app-header">
         <h1>🏗️ Architecture Decision Maker</h1>
         <p>Visualize and explore architecture decisions and their dependencies</p>
+        <div className="auto-save-status">
+          💾 Auto-saves to browser storage
+        </div>
       </header>
 
       <div className="app-content">
@@ -238,6 +272,7 @@ function App() {
               errors={errors}
               isParsing={isParsing}
               isValid={tree !== null && errors.length === 0}
+              resetToDefault={resetToDefault}
             />
           )}
 

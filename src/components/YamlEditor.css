@@ -32,15 +32,34 @@
 }
 
 .toggle-button {
-  padding: 6px 12px;
+  background: #f3f4f6;
   border: 1px solid #d1d5db;
   border-radius: 4px;
-  background: #ffffff;
-  color: #374151;
-  font-size: 14px;
+  padding: 6px 12px;
+  font-size: 12px;
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  margin: 0;
+  transition: background-color 0.2s ease;
+}
+
+.toggle-button:hover {
+  background: #e5e7eb;
+}
+
+.reset-button {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  border-radius: 4px;
+  padding: 6px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #92400e;
+  font-weight: 500;
+}
+
+.reset-button:hover {
+  background: #fde68a;
+  border-color: #d97706;
 }
 
 .auto-update-indicator {
@@ -71,11 +90,6 @@
   color: #dc2626;
   background: #fee2e2;
   border-color: #fca5a5;
-}
-
-.toggle-button:hover {
-  background: #f3f4f6;
-  border-color: #9ca3af;
 }
 
 .editor-content {
