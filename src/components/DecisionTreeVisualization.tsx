@@ -202,7 +202,7 @@ export default function DecisionTreeVisualization({
           <div className="legend-item">
             <div className="legend-color external"></div>
             <span>External Dependencies (in nodes)</span>
-          </div>
+          </div> 
         </div>
       </div>
       
