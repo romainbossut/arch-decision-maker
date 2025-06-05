@@ -47,6 +47,10 @@
   background: #ef4444;
 }
 
+.legend-color.inherited-rejected {
+  background: #fca5a5;
+}
+
 .legend-color.external {
   background: #6b7280;
   background-image: repeating-linear-gradient(

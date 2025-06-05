@@ -56,6 +56,17 @@
   color: #ffffff;
 }
 
+.decision-node.inherited-rejected-path {
+  background: #fef7f7;
+  border-color: #fca5a5;
+  color: #b91c1c;
+}
+
+.decision-node.inherited-rejected-path.selected {
+  background: #f87171;
+  color: #ffffff;
+}
+
 .decision-header {
   display: flex;
   justify-content: space-between;
@@ -80,6 +91,12 @@
   padding: 2px 6px;
   border-radius: 4px;
   flex-shrink: 0;
+}
+
+.status-indicator.inherited {
+  background: #fca5a5;
+  color: #991b1b;
+  font-style: italic;
 }
 
 .decision-id {
@@ -268,6 +285,10 @@
 
 .decision-node.rejected-path .react-flow__handle {
   background: #ef4444;
+}
+
+.decision-node.inherited-rejected-path .react-flow__handle {
+  background: #fca5a5;
 }
 
 .decision-node.selected .react-flow__handle {

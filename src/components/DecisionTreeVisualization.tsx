@@ -45,6 +45,41 @@ export default function DecisionTreeVisualization({
     });
   }, []);
 
+  // Function to calculate inherited rejection status
+  const calculateRejectionStatus = useCallback((decisionId: string, visited = new Set<string>()): { isRejected: boolean; isInherited: boolean } => {
+    // Prevent infinite loops in circular dependencies
+    if (visited.has(decisionId)) {
+      return { isRejected: false, isInherited: false };
+    }
+    
+    const decision = tree.decisions[decisionId];
+    if (!decision) {
+      return { isRejected: false, isInherited: false };
+    }
+
+    // If explicitly rejected, return explicit rejection
+    if (decision.status === 'rejected') {
+      return { isRejected: true, isInherited: false };
+    }
+
+    // Check if any dependencies are rejected (explicit or inherited)
+    if (decision.dependencies && decision.dependencies.length > 0) {
+      visited.add(decisionId);
+      
+      for (const depId of decision.dependencies) {
+        const depStatus = calculateRejectionStatus(depId, new Set(visited));
+        if (depStatus.isRejected) {
+          visited.delete(decisionId);
+          return { isRejected: true, isInherited: true };
+        }
+      }
+      
+      visited.delete(decisionId);
+    }
+
+    return { isRejected: false, isInherited: false };
+  }, [tree.decisions]);
+
   // Enhanced layout algorithm that responds to node expansion
   const { initialNodes, initialEdges } = useMemo(() => {
     const decisions = Object.values(tree.decisions);
@@ -132,6 +167,9 @@ export default function DecisionTreeVisualization({
           currentY += actualSpacing;
         }
 
+        // Calculate rejection status for this decision
+        const rejectionStatus = calculateRejectionStatus(decisionId);
+
         calculatedNodes.push({
           id: decisionId,
           type: 'decision',
@@ -142,6 +180,7 @@ export default function DecisionTreeVisualization({
             onSelect: () => onDecisionSelect(decisionId),
             onExpansionChange: handleNodeExpansion,
             isExpanded,
+            isInheritedRejection: rejectionStatus.isRejected && rejectionStatus.isInherited,
           },
           targetPosition: Position.Left,
           sourcePosition: Position.Right,
@@ -154,13 +193,34 @@ export default function DecisionTreeVisualization({
       if (decision.dependencies) {
         decision.dependencies.forEach(depId => {
           if (tree.decisions[depId]) {
-            const edgeStyle = decision.status === 'rejected' ? {
-              strokeDasharray: '5,5',
-              stroke: '#ef4444',
-            } : decision.status === 'accepted' ? {
-              stroke: '#10b981',
-              strokeWidth: 2,
-            } : {};
+            const rejectionStatus = calculateRejectionStatus(decision.id);
+            
+            let edgeStyle = {};
+            let animated = false;
+
+            if (rejectionStatus.isRejected) {
+              if (rejectionStatus.isInherited) {
+                // Inherited rejection - lighter red, dashed
+                edgeStyle = {
+                  strokeDasharray: '8,4',
+                  stroke: '#fca5a5', // lighter red
+                  strokeWidth: 2,
+                };
+              } else {
+                // Explicit rejection - dark red, dashed
+                edgeStyle = {
+                  strokeDasharray: '5,5',
+                  stroke: '#ef4444',
+                  strokeWidth: 2,
+                };
+              }
+            } else if (decision.status === 'accepted') {
+              edgeStyle = {
+                stroke: '#10b981',
+                strokeWidth: 2,
+              };
+              animated = true;
+            }
 
             calculatedEdges.push({
               id: `${depId}-${decision.id}`,
@@ -168,7 +228,7 @@ export default function DecisionTreeVisualization({
               target: decision.id,
               type: 'smoothstep',
               style: edgeStyle,
-              animated: decision.status === 'accepted',
+              animated,
             });
           }
         });
@@ -197,7 +257,11 @@ export default function DecisionTreeVisualization({
           </div>
           <div className="legend-item">
             <div className="legend-color rejected"></div>
-            <span>Rejected Decision</span>
+            <span>Explicitly Rejected</span>
+          </div>
+          <div className="legend-item">
+            <div className="legend-color inherited-rejected"></div>
+            <span>Rejected by Inheritance</span>
           </div>
           <div className="legend-item">
             <div className="legend-color external"></div>

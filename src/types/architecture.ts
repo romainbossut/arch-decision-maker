@@ -70,6 +70,7 @@ export interface DecisionNodeData {
   onSelect: () => void;
   onExpansionChange?: (nodeId: string, isExpanded: boolean) => void;
   isExpanded?: boolean;
+  isInheritedRejection?: boolean; // true if rejected due to dependency rejection
 }
 
 export interface ExternalDependencyNodeData {

@@ -8,21 +8,38 @@ interface DecisionNodeProps {
 }
 
 export default function DecisionNode({ data }: DecisionNodeProps) {
-  const { decision, isSelected, onSelect, onExpansionChange, isExpanded } = data;
+  const { decision, isSelected, onSelect, onExpansionChange, isExpanded, isInheritedRejection } = data;
 
-  const getStatusColor = (status?: string) => {
+  const getStatusColor = (status?: string, isInherited = false) => {
     switch (status) {
       case 'accepted': return '#10b981';
-      case 'rejected': return '#ef4444';
+      case 'rejected': return isInherited ? '#fca5a5' : '#ef4444'; // lighter red for inherited
       case 'deprecated': return '#f59e0b';
       case 'proposed': return '#6b7280';
       default: return '#64748b';
     }
   };
 
+  const getEffectiveStatus = () => {
+    if (isInheritedRejection) {
+      return 'rejected';
+    }
+    return decision.status;
+  };
+
+  const getStatusLabel = () => {
+    if (isInheritedRejection) {
+      return 'rejected (inherited)';
+    }
+    return decision.status;
+  };
+
   const getPathClass = () => {
-    if (decision.status === 'accepted') return 'selected-path';
-    if (decision.status === 'rejected') return 'rejected-path';
+    const effectiveStatus = getEffectiveStatus();
+    if (effectiveStatus === 'accepted') return 'selected-path';
+    if (effectiveStatus === 'rejected') {
+      return isInheritedRejection ? 'inherited-rejected-path' : 'rejected-path';
+    }
     return '';
   };
 
@@ -48,7 +65,7 @@ export default function DecisionNode({ data }: DecisionNodeProps) {
       className={`decision-node ${getPathClass()} ${isSelected ? 'selected' : ''} ${showExternalDeps ? 'expanded' : ''}`}
       onClick={onSelect}
       style={{
-        borderColor: getStatusColor(decision.status),
+        borderColor: getStatusColor(getEffectiveStatus(), isInheritedRejection),
       }}
     >
       <Handle type="target" position={Position.Left} id="left" />
@@ -56,12 +73,12 @@ export default function DecisionNode({ data }: DecisionNodeProps) {
       
       <div className="decision-header">
         <div className="decision-title">{decision.title}</div>
-        {decision.status && (
+        {(decision.status || isInheritedRejection) && (
           <div 
-            className="status-indicator"
-            style={{ backgroundColor: getStatusColor(decision.status) }}
+            className={`status-indicator ${isInheritedRejection ? 'inherited' : ''}`}
+            style={{ backgroundColor: getStatusColor(getEffectiveStatus(), isInheritedRejection) }}
           >
-            {decision.status}
+            {getStatusLabel()}
           </div>
         )}
       </div>
