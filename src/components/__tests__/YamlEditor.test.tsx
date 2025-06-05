@@ -5,7 +5,7 @@ import YamlEditor from '../YamlEditor';
 
 // Mock Monaco Editor for tests
 vi.mock('@monaco-editor/react', () => ({
-  default: ({ value, onChange, options }: any) => (
+  default: ({ value, onChange }: any) => (
     <textarea
       value={value}
       onChange={(e) => onChange?.(e.target.value)}

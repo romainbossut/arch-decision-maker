@@ -158,7 +158,7 @@ export default function YamlEditor({ value, onChange, errors, isParsing, isValid
             value={value}
             onChange={handleInputChange}
             onMount={handleEditorDidMount}
-            theme="vs-dark"
+            theme="vs"
             options={{
               selectOnLineNumbers: true,
               roundedSelection: false,
