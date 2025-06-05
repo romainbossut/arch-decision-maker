@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { parseYamlContent, validateDecisionTree } from '../yamlParser';
+import type { ArchitectureDecisionTree } from '../../types/architecture';
 
 describe('yamlParser', () => {
   describe('parseYamlContent', () => {
@@ -193,7 +194,7 @@ decisions:
 
   describe('validateDecisionTree', () => {
     it('should return no errors for valid tree', () => {
-      const tree = {
+      const tree: ArchitectureDecisionTree = {
         name: 'Valid Tree',
         decisions: {
           'a': { id: 'a', title: 'A', description: 'Decision A', dependencies: [], children: ['b'] },
@@ -202,7 +203,7 @@ decisions:
         rootDecisions: ['a']
       };
 
-      const errors = validateDecisionTree(tree);
+      const errors = validateDecisionTree(tree as any);
       expect(errors).toHaveLength(0);
     });
 
@@ -288,7 +289,7 @@ decisions:
         rootDecisions: ['a']
       };
 
-      const errors = validateDecisionTree(tree);
+      const errors = validateDecisionTree(tree as any);
       expect(errors).toHaveLength(1);
       expect(errors[0]).toContain('duplicate external dependency ID: duplicate-id');
     });
@@ -391,7 +392,7 @@ decisions:
         rootDecisions: ['a']
       };
 
-      const errors = validateDecisionTree(tree);
+      const errors = validateDecisionTree(tree as any);
       expect(errors).toHaveLength(0);
     });
 
@@ -426,7 +427,7 @@ decisions:
         rootDecisions: ['a']
       };
 
-      const errors = validateDecisionTree(tree);
+      const errors = validateDecisionTree(tree as any);
       expect(errors).toHaveLength(1);
       expect(errors[0]).toContain('duplicate pros/cons ID: duplicate-id');
     });
@@ -460,7 +461,7 @@ decisions:
         rootDecisions: ['a']
       };
 
-      const errors = validateDecisionTree(tree);
+      const errors = validateDecisionTree(tree as any);
       expect(errors).toHaveLength(1);
       expect(errors[0]).toContain('duplicate pros/cons ID: duplicate-pro');
     });
@@ -511,7 +512,7 @@ decisions:
         rootDecisions: ['a']
       };
 
-      const errors = validateDecisionTree(tree);
+      const errors = validateDecisionTree(tree as any);
       expect(errors).toHaveLength(3);
       expect(errors[0]).toContain('pro "pro-invalid-low" has invalid impact level');
       expect(errors[1]).toContain('pro "pro-invalid-high" has invalid impact level');
@@ -572,7 +573,7 @@ decisions:
         rootDecisions: ['a']
       };
 
-      const errors = validateDecisionTree(tree);
+      const errors = validateDecisionTree(tree as any);
       expect(errors).toHaveLength(0);
     });
   });

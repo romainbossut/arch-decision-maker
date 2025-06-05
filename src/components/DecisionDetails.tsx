@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
-import type { DecisionPoint, ExternalDependency, ProsConsItem } from '../types/architecture';
+import type { DecisionPoint, ExternalDependency } from '../types/architecture';
 import './DecisionDetails.css';
 
 interface DecisionDetailsProps {
@@ -9,21 +9,7 @@ interface DecisionDetailsProps {
   parentDecisionId?: string;
 }
 
-function formatDate(dateString: string): string {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  });
-}
 
-function isDateOverdue(dateString: string): boolean {
-  const date = new Date(dateString);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  return date < today;
-}
 
 function renderImpactIndicator(impact: 'minor' | 'major' | 'high'): React.JSX.Element {
   const impactConfig = {
@@ -41,13 +27,7 @@ function renderImpactIndicator(impact: 'minor' | 'major' | 'high'): React.JSX.El
   );
 }
 
-function calculateOverallScore(items: ProsConsItem[]): number {
-  if (items.length === 0) return 0;
-  // Convert impact to numeric values for calculation
-  const impactValues = { minor: 1, major: 3, high: 5 };
-  const sum = items.reduce((acc, item) => acc + impactValues[item.impact], 0);
-  return Math.round((sum / items.length) * 10) / 10;
-}
+
 
 export default function DecisionDetails({ 
   decision, 
@@ -148,8 +128,7 @@ export default function DecisionDetails({
     );
   };
 
-  const prosOverallScore = decision.prosCons?.pros ? calculateOverallScore(decision.prosCons.pros) : null;
-  const consOverallScore = decision.prosCons?.cons ? calculateOverallScore(decision.prosCons.cons) : null;
+
 
   return (
     <div className="decision-details">

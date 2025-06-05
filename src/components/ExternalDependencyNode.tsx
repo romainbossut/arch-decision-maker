@@ -1,4 +1,4 @@
-import React from 'react';
+
 import { Handle, Position } from 'reactflow';
 import type { ExternalDependencyNodeData } from '../types/architecture';
 import './ExternalDependencyNode.css';

@@ -7,12 +7,12 @@ describe('Architecture Types', () => {
       const prosConsItem: ProsConsItem = {
         id: 'pros-cons-1',
         title: 'Pros Cons Item Title',
-        rating: 4
+        impact: 'high'
       };
 
       expect(prosConsItem.id).toBe('pros-cons-1');
       expect(prosConsItem.title).toBe('Pros Cons Item Title');
-      expect(prosConsItem.rating).toBe(4);
+      expect(prosConsItem.impact).toBe('high');
     });
 
     it('should allow optional description', () => {
@@ -20,7 +20,7 @@ describe('Architecture Types', () => {
         id: 'pros-cons-1',
         title: 'Pros Cons Item Title',
         description: 'Description of the pros/cons item',
-        rating: 3
+        impact: 'major'
       };
 
       expect(prosConsItem.description).toBe('Description of the pros/cons item');
@@ -41,7 +41,7 @@ describe('Architecture Types', () => {
           {
             id: 'pro-1',
             title: 'Good Thing',
-            rating: 5
+            impact: 'high'
           }
         ]
       };
@@ -57,7 +57,7 @@ describe('Architecture Types', () => {
           {
             id: 'con-1',
             title: 'Bad Thing',
-            rating: 2
+            impact: 'minor'
           }
         ]
       };
@@ -69,22 +69,22 @@ describe('Architecture Types', () => {
 
     it('should allow both pros and cons', () => {
       const prosCons: ProsCons = {
-        pros: [
-          {
-            id: 'pro-1',
-            title: 'Good Thing',
-            description: 'This is good',
-            rating: 5
-          }
-        ],
-        cons: [
-          {
-            id: 'con-1',
-            title: 'Bad Thing',
-            description: 'This is bad',
-            rating: 3
-          }
-        ]
+                  pros: [
+            {
+              id: 'pro-1',
+              title: 'Good Thing',
+              description: 'This is good',
+              impact: 'high'
+            }
+          ],
+          cons: [
+            {
+              id: 'con-1',
+              title: 'Bad Thing',
+              description: 'This is bad',
+              impact: 'major'
+            }
+          ]
       };
 
       expect(prosCons.pros).toHaveLength(1);
@@ -154,7 +154,7 @@ describe('Architecture Types', () => {
               id: 'pro-1',
               title: 'Great Performance',
               description: 'Significantly improves performance',
-              rating: 5
+              impact: 'high'
             }
           ],
           cons: [
@@ -162,7 +162,7 @@ describe('Architecture Types', () => {
               id: 'con-1',
               title: 'High Cost',
               description: 'Expensive to implement',
-              rating: 3
+              impact: 'major'
             }
           ]
         },
@@ -176,8 +176,8 @@ describe('Architecture Types', () => {
       expect(decision.externalDependencies![0].id).toBe('ext-dep-1');
       expect(decision.prosCons?.pros).toHaveLength(1);
       expect(decision.prosCons?.cons).toHaveLength(1);
-      expect(decision.prosCons?.pros![0].rating).toBe(5);
-      expect(decision.prosCons?.cons![0].rating).toBe(3);
+      expect(decision.prosCons?.pros![0].impact).toBe('high');
+      expect(decision.prosCons?.cons![0].impact).toBe('major');
       expect(decision.children).toEqual(['child-1']);
       expect(decision.position).toEqual({ x: 100, y: 200 });
     });
@@ -249,7 +249,7 @@ describe('Architecture Types', () => {
               id: 'yaml-pro-1',
               title: 'YAML Pro',
               description: 'A pro from YAML',
-              rating: 4
+              impact: 'major'
             }
           ],
           cons: [
@@ -257,7 +257,7 @@ describe('Architecture Types', () => {
               id: 'yaml-con-1',
               title: 'YAML Con',
               description: 'A con from YAML',
-              rating: 2
+              impact: 'minor'
             }
           ]
         }
@@ -271,8 +271,8 @@ describe('Architecture Types', () => {
       expect(yamlDecision.prosCons?.cons).toHaveLength(1);
       expect(yamlDecision.prosCons?.pros![0].title).toBe('YAML Pro');
       expect(yamlDecision.prosCons?.cons![0].title).toBe('YAML Con');
-      expect(yamlDecision.prosCons?.pros![0].rating).toBe(4);
-      expect(yamlDecision.prosCons?.cons![0].rating).toBe(2);
+      expect(yamlDecision.prosCons?.pros![0].impact).toBe('major');
+      expect(yamlDecision.prosCons?.cons![0].impact).toBe('minor');
     });
   });
 

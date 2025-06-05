@@ -96,18 +96,21 @@ describe('TypeScript Interfaces', () => {
 
   test('ArchitectureDecisionTree should have root decisions', () => {
     const tree: ArchitectureDecisionTree = {
-      decisions: [
-        {
+      name: 'Test Tree',
+      description: 'A test decision tree',
+      decisions: {
+        'root-1': {
           id: 'root-1',
           title: 'Root Decision',
           description: 'A root level decision',
           children: []
         }
-      ]
+      },
+      rootDecisions: ['root-1']
     };
 
-    expect(tree.decisions).toHaveLength(1);
-    expect(tree.decisions[0].id).toBe('root-1');
+    expect(Object.keys(tree.decisions)).toHaveLength(1);
+    expect(tree.decisions['root-1'].id).toBe('root-1');
   });
 
   test('Impact levels should be strictly typed', () => {
