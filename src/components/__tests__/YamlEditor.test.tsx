@@ -3,6 +3,19 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import YamlEditor from '../YamlEditor';
 
+// Mock Monaco Editor for tests
+vi.mock('@monaco-editor/react', () => ({
+  default: ({ value, onChange, options }: any) => (
+    <textarea
+      value={value}
+      onChange={(e) => onChange?.(e.target.value)}
+      placeholder="Paste your YAML configuration here..."
+      data-testid="monaco-editor"
+      style={{ width: '100%', height: '100%' }}
+    />
+  ),
+}));
+
 describe('YamlEditor', () => {
   it('renders with default props', () => {
     const mockOnChange = vi.fn();
@@ -16,6 +29,7 @@ describe('YamlEditor', () => {
 
     expect(screen.getByText('YAML Configuration')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('Paste your YAML configuration here...')).toBeInTheDocument();
+    expect(screen.getByText('📝 Format')).toBeInTheDocument();
     expect(screen.getByText('Expand')).toBeInTheDocument();
     expect(screen.getByText('❌ Invalid')).toBeInTheDocument(); // Default state when no isValid prop
   });
@@ -100,7 +114,7 @@ describe('YamlEditor', () => {
 
   it('displays validation errors when provided', () => {
     const mockOnChange = vi.fn();
-    const errors = ['Error 1', 'Error 2'];
+    const errors = ['Error at line 5', 'Error at line 10'];
 
     render(
       <YamlEditor
@@ -111,8 +125,10 @@ describe('YamlEditor', () => {
     );
 
     expect(screen.getByText('Validation Errors:')).toBeInTheDocument();
-    expect(screen.getByText('Error 1')).toBeInTheDocument();
-    expect(screen.getByText('Error 2')).toBeInTheDocument();
+    expect(screen.getByText('Line 5:')).toBeInTheDocument();
+    expect(screen.getByText('Error at line 5')).toBeInTheDocument();
+    expect(screen.getByText('Line 10:')).toBeInTheDocument();
+    expect(screen.getByText('Error at line 10')).toBeInTheDocument();
   });
 
   it('does not display error section when no errors', () => {
