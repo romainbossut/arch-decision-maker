@@ -108,6 +108,33 @@ decisions:
           description: "More databases to manage and monitor"
           impact: "major"
 
+  - id: "data-sync-service"
+    title: "Data Synchronization Service"
+    description: "Service to handle data synchronization between microservice databases."
+    status: "proposed"
+    dependencies: ["database-per-service"]
+    riskLevel: "medium"
+    tags: ["data", "synchronization"]
+    prosCons:
+      pros:
+        - id: "centralized-sync"
+          title: "Centralized Sync Logic"
+          description: "Single place to manage data synchronization"
+          impact: "major"
+      cons:
+        - id: "complexity"
+          title: "Additional Complexity"
+          description: "Another service to maintain and monitor"
+          impact: "minor"
+
+  - id: "microservice-orchestration"
+    title: "Microservice Orchestration Layer"
+    description: "Orchestration layer to coordinate complex business processes across microservices."
+    status: "proposed"
+    dependencies: ["data-sync-service"]
+    riskLevel: "high"
+    tags: ["orchestration", "architecture"]
+
   - id: "monitoring"
     title: "Distributed Monitoring"
     description: "Comprehensive monitoring solution for distributed services with metrics, logs, and tracing."
